@@ -7,4 +7,4 @@ FireFox, Chrome
 
 ### versions
 
- * hightlighting selection
+ * **1.0.1** : hightlighting selection

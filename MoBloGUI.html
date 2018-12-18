@@ -338,8 +338,20 @@
             if (diagrammeName == 'StreamPublication') {
                 loadStreamNodes();
             }
-        } 
+        }
+		// GUI Variables
+		var MoBlo_ActiveDiagramme = "";
+		var MoBlo_MousePosition = {};
+		var MoBlo_SelectedItem = -1;
+		var MoBlo_ClickedItem = -1;
+		var PM_nodeposition = [];
+		var UD_unitposition = [];
+		var BT_transacposition = [];
+		var SD_streamposition = [];
+		var SP_publiposition = [];
+		
     
+		//Moblo Variables
         var MoBlo_Nodelist = [];
         var MoBlo_AddressMap = {};
         var MoBlo_UnitDefinitionList = [];
@@ -352,27 +364,69 @@
         var ctx_PM = canvas_PM.getContext('2d');
 
         initMobloZone('.mobloPopulationMap', 'Population Map', ctx_PM);
+		canvas_PM.addEventListener('mousemove', function(evt) {
+			MoBlo_ActiveDiagramme = 'PM';
+			MoBlo_MousePosition = getMousePos(canvas_PM, evt);
+			selectzone();
+		}, false);
+		canvas_PM.addEventListener('mouseup', function(evt) {
+			clickzone();
+		}, false);
+		
 
         var canvas_UD = document.querySelector('.mobloUnitDefinition');
         var ctx_UD = canvas_UD.getContext('2d');
 
         initMobloZone('.mobloUnitDefinition', 'Unit Definition', ctx_UD);
+		canvas_UD.addEventListener('mousemove', function(evt) {
+			MoBlo_ActiveDiagramme = 'UD';
+			MoBlo_MousePosition = getMousePos(canvas_UD, evt);
+			selectzone();
+		}, false);
+		canvas_UD.addEventListener('mouseup', function(evt) {
+			clickzone();
+		}, false);
+		
 
         var canvas_BT = document.querySelector('.mobloBusinessTransactions');
         var ctx_BT = canvas_BT.getContext('2d');
 
         initMobloZone('.mobloBusinessTransactions', 'Business Transactions', ctx_BT);
+		canvas_BT.addEventListener('mousemove', function(evt) {
+			MoBlo_ActiveDiagramme = 'BT';
+			MoBlo_MousePosition = getMousePos(canvas_BT, evt);
+			selectzone();
+		}, false);
+		canvas_BT.addEventListener('mouseup', function(evt) {
+			clickzone();
+		}, false);
 
         var canvas_SD = document.querySelector('.mobloStreamDefinition');
         var ctx_SD = canvas_SD.getContext('2d');
 
         initMobloZone('.mobloStreamDefinition', 'Stream Definition', ctx_SD);
+		canvas_SD.addEventListener('mousemove', function(evt) {
+			MoBlo_ActiveDiagramme = 'SD';
+			MoBlo_MousePosition = getMousePos(canvas_SD, evt);
+			selectzone();
+		}, false);
+		canvas_SD.addEventListener('mouseup', function(evt) {
+			clickzone();
+		}, false);
 
+		
         var canvas_SP = document.querySelector('.mobloStreamPublication');
         var ctx_SP = canvas_SP.getContext('2d');
 
         initMobloZone('.mobloStreamPublication', 'Stream Publication', ctx_SP);
-
+		canvas_SP.addEventListener('mousemove', function(evt) {
+			MoBlo_ActiveDiagramme = 'SP';
+			MoBlo_MousePosition = getMousePos(canvas_SP, evt);
+			selectzone();
+		}, false);
+		canvas_SP.addEventListener('mouseup', function(evt) {
+			clickzone();
+		}, false);
 
         function initNames() {
             var projectName = document.getElementById("project_name").value;
@@ -414,7 +468,7 @@
 
             ctx.fillStyle = 'rgb(125, 125, 125)';
             ctx.font = 'italic 14px serif';
-            ctx.fillText('MoBlo GUI v1.0', 900, 25);
+            ctx.fillText('MoBlo GUI v1.0.1', 900, 25);
 
         }
 
@@ -477,7 +531,7 @@
 
         function addPopulationMapNode() {
             var nodename = document.getElementById("nodename").value;
-            if(nodename != null) {
+            if(nodename != null && nodename != "") {
                 MoBlo_Nodelist.push(nodename);
                 //addnode in html list
                 var listNodeName = document.getElementById("listNodeName");
@@ -509,22 +563,58 @@
             }
         }
 
-        function drawSimpleNode(x, y, radius) {
+        function drawSimpleNode(x, y, radius, selected, click) {
+			var color = '';
+			if (selected) {
+				color = 'rgb(128, 128, 128)';
+			} else {
+				color = 'rgb(0, 0, 0)';
+			}
+			
+            ctx_PM.fillStyle = 'rgb(255, 255, 255)';
+            ctx_PM.fillRect(x-radius-5, y-radius-5, 2*radius+10, 2*radius+10);
+		
+			if (click) {
+				ctx_PM.beginPath();
+				ctx_PM.strokeStyle = 'rgb(153, 217, 234)';
+				ctx_PM.lineWidth = 10;
+				ctx_PM.arc(x,y,radius,0,2*Math.PI);
+				ctx_PM.stroke();
+			}
+			
             ctx_PM.beginPath();
-            ctx_PM.strokeStyle = 'rgb(0, 0, 0)';
+            ctx_PM.strokeStyle = color;
             ctx_PM.lineWidth = 4;
             ctx_PM.arc(x,y,radius,0,2*Math.PI);
             ctx_PM.stroke();
         }
 
 
-        function drawConnectNode(x, y, radius) {
-            ctx_PM.beginPath();
-            ctx_PM.strokeStyle = 'rgb(0, 0, 0)';
-            ctx_PM.lineWidth = 4;
+        function drawConnectNode(x, y, radius, selected, click) {
+			var color = '';
+			if (selected) {
+				color = 'rgb(128, 128, 128)';
+			} else {
+				color = 'rgb(0, 0, 0)';
+			}
+			
+            ctx_PM.fillStyle = 'rgb(255, 255, 255)';
+            ctx_PM.fillRect(x-radius-5, y-radius-5, 2*radius+10, 2*radius+10);
+			
+			if (click) {
+				ctx_PM.beginPath();
+				ctx_PM.strokeStyle = 'rgb(153, 217, 234)';
+				ctx_PM.lineWidth = 10;
+				ctx_PM.arc(x,y,radius,0,2*Math.PI);
+				ctx_PM.stroke();
+			}
+			
+			ctx_PM.beginPath();
+            ctx_PM.strokeStyle = color;
+			ctx_PM.lineWidth = 4;
             ctx_PM.arc(x,y,radius,0,2*Math.PI);
             ctx_PM.stroke();
-
+			
             ctx_PM.beginPath();
             ctx_PM.fillStyle = 'rgb(255, 255, 255)';
             ctx_PM.lineWidth = 8;
@@ -532,23 +622,40 @@
             ctx_PM.fill();
 
             ctx_PM.beginPath();
-            ctx_PM.strokeStyle = 'rgb(0, 0, 0)';
-            ctx_PM.lineWidth = 4;
+            ctx_PM.strokeStyle = color;
+			ctx_PM.lineWidth = 4;
             ctx_PM.arc(x,y+radius,radius*0.4,0,2*Math.PI);
             ctx_PM.stroke();
-
         }
 
 
-        function drawBizNode(rights, x, y, radius) {
+        function drawBizNode(rights, x, y, radius, selected, click) {
+			var color = '';
+			if (selected) {
+				color = 'rgb(128, 128, 128)';
+			} else {
+				color = 'rgb(0, 0, 0)';
+			}
+			
+            ctx_PM.fillStyle = 'rgb(255, 255, 255)';
+            ctx_PM.fillRect(x-radius-5, y-radius-5, 2*radius+10, 2*radius+10);
+			
+			if (click) {
+				ctx_PM.beginPath();
+				ctx_PM.strokeStyle = 'rgb(153, 217, 234)';
+				ctx_PM.lineWidth = 10;
+				ctx_PM.arc(x,y,radius,0,2*Math.PI);
+				ctx_PM.stroke();
+			}
+			
             ctx_PM.beginPath();
-            ctx_PM.strokeStyle = 'rgb(0, 0, 0)';
+            ctx_PM.strokeStyle = color;
             ctx_PM.lineWidth = 4;
             ctx_PM.arc(x,y,radius,0,2*Math.PI);
             ctx_PM.stroke();
 
             //send
-            if(rights[1]) {
+            if(rights.send) {
                 ctx_PM.beginPath();
                 ctx_PM.lineWidth = 8;
                 ctx_PM.strokeStyle = 'rgb(255, 255, 255)';
@@ -559,7 +666,7 @@
                 ctx_PM.stroke();
                 ctx_PM.beginPath();
                 ctx_PM.lineWidth = 4;
-                ctx_PM.strokeStyle = 'rgb(0, 0, 0)';
+                ctx_PM.strokeStyle = color;
                 ctx_PM.moveTo(x-radius,     y+radius*0.1+radius);
                 ctx_PM.lineTo(x-radius*0.4, y+radius*0.1+radius*0.4);
                 ctx_PM.moveTo(x-radius*0.4, y+radius*0.1+radius);
@@ -568,18 +675,18 @@
             }
 
             //receive
-            if(rights[2]) {
+            if(rights.receive) {
                 ctx_PM.lineWidth = 8;
                 ctx_PM.strokeStyle = 'rgb(255, 255, 255)';
                 ctx_PM.strokeRect(x+radius,     y+radius*0.1+radius, -radius*0.6, -radius*0.6);
                 ctx_PM.lineWidth = 4;
-                ctx_PM.strokeStyle = 'rgb(0, 0, 0)';
+                ctx_PM.strokeStyle = color;
                 ctx_PM.strokeRect(x+radius,     y+radius*0.1+radius, -radius*0.6, -radius*0.6);
             }
 
 
             //issue
-            if(rights[3]) {
+            if(rights.issue) {
                 ctx_PM.beginPath();
                 ctx_PM.lineWidth = 8;
                 ctx_PM.strokeStyle = 'rgb(255, 255, 255)';
@@ -590,7 +697,7 @@
                 ctx_PM.stroke();
                 ctx_PM.beginPath();
                 ctx_PM.lineWidth = 4;
-                ctx_PM.strokeStyle = 'rgb(0, 0, 0)';
+                ctx_PM.strokeStyle = color;
                 ctx_PM.moveTo(x+radius,     y-radius*0.1-radius*0.4);
                 ctx_PM.lineTo(x+radius*0.4, y-radius*0.1-radius*0.4);
                 ctx_PM.lineTo(x+radius*0.7, y-radius*0.1-radius);
@@ -599,7 +706,7 @@
             }
 
             //create
-            if(rights[4]) {
+            if(rights.create) {
                 ctx_PM.beginPath();
                 ctx_PM.lineWidth = 8;
                 ctx_PM.strokeStyle = 'rgb(255, 255, 255)';
@@ -610,43 +717,60 @@
                 ctx_PM.stroke();
                 ctx_PM.beginPath();
                 ctx_PM.lineWidth = 4;
-                ctx_PM.strokeStyle = 'rgb(0, 0, 0)';
+                ctx_PM.strokeStyle = color;
                 ctx_PM.moveTo(x-0.83*radius,     y-radius*0.08-radius);
                 ctx_PM.lineTo(x-0.6*radius*0.4, y-radius*0.15-radius*0.4);
                 ctx_PM.moveTo(x-radius,     y-0.9*radius);
                 ctx_PM.lineTo(x-radius*0.4, y-0.9*radius*0.4);
                 ctx_PM.stroke();
             }
-
         }
 
-        function drawAdminNode(rights, x, y, radius) {
+        function drawAdminNode(rights, x, y, radius, selected, click) {
+			var color = '';
+			if (selected) {
+				color = 'rgb(128, 128, 128)';
+			} else {
+				color = 'rgb(0, 0, 0)';
+			}
+			
+            ctx_PM.fillStyle = 'rgb(255, 255, 255)';
+            ctx_PM.fillRect(x-radius-5, y-radius-5, 2*radius+10, 2*radius+10);
+			
+			if (click) {
+				ctx_PM.beginPath();
+				ctx_PM.strokeStyle = 'rgb(153, 217, 234)';
+				ctx_PM.lineWidth = 10;
+				ctx_PM.arc(x,y,radius,0,2*Math.PI);
+				ctx_PM.stroke();
+			}
+			
             ctx_PM.beginPath();
-            ctx_PM.strokeStyle = 'rgb(0, 0, 0)';
+            ctx_PM.strokeStyle = color;
             ctx_PM.lineWidth = 4;
             ctx_PM.arc(x,y,radius,0,2*Math.PI);
             ctx_PM.stroke();
 
             //admin
-            if(rights[1] || rights[2]) {
+            if(rights.origin || rights.admin) {
                 ctx_PM.beginPath();
-                ctx_PM.strokeStyle = 'rgb(0, 0, 0)';
+                ctx_PM.strokeStyle = color;
                 ctx_PM.lineWidth = 4;
                 ctx_PM.arc(x,y,radius*0.8,0,2*Math.PI);
                 ctx_PM.stroke();
             }
 
             //mine
-            if(rights[4]) {
+            if(rights.process) {
                 ctx_PM.beginPath();
-                ctx_PM.fillStyle = 'rgb(0, 0, 0)';
+                ctx_PM.fillStyle = color;
                 ctx_PM.lineWidth = 4;
                 ctx_PM.arc(x,y,radius*0.4,0,2*Math.PI);
                 ctx_PM.fill();
             }
 
             //activate            
-            if(rights[1] || rights[3]) {
+            if(rights.origin || rights.activate) {
                 ctx_PM.beginPath();
                 ctx_PM.lineWidth = 8;
                 ctx_PM.strokeStyle = 'rgb(255, 255, 255)';
@@ -655,12 +779,11 @@
                 ctx_PM.stroke();
                 ctx_PM.beginPath();
                 ctx_PM.lineWidth = 4;
-                ctx_PM.strokeStyle = 'rgb(0, 0, 0)';
+                ctx_PM.strokeStyle = color;
                 ctx_PM.moveTo(x-radius,     y-radius);
                 ctx_PM.lineTo(x-radius*0.4, y-radius*0.4);
                 ctx_PM.stroke();
             }
-
         }
 
         function addPopulationMapAddress() {
@@ -680,7 +803,7 @@
 
                 if (originRight || adminRight || activateRight || processRight) {
 
-                    var rights = ['admin', originRight, adminRight, activateRight, processRight];
+                    var rights = { name: 'admin', origin: originRight, admin: adminRight, activate: activateRight, process: processRight};
                     if (MoBlo_AddressMap[nodename] == null ) {
                         var r_rights = [rights];
                         MoBlo_AddressMap[nodename] = r_rights;
@@ -700,13 +823,19 @@
 
                         x = x + ((MoBlo_AddressMap[nodename].length -1) * (2*radius + 10));
 
-                        drawAdminNode(rights, x, y, radius);
+                        drawAdminNode(rights, x, y, radius, false, false);
+						PM_nodeposition.push({limit: { xmin: x-radius, ymin: y-radius, xmax: x+radius, ymax: y+radius}, rights: rights,  x: x, y: y, radius: radius});
                     }
+					
+					document.getElementById('processRight').checked = false;
+					document.getElementById('activateRight').checked = false;
+					document.getElementById('adminRight').checked = false;
+					document.getElementById('originRight').checked = false;
                 }
 
                 if (sendRight || receiveRight || issueRight || createRight) {
 
-                    var rights = ['user', sendRight, receiveRight, issueRight, createRight];
+                    var rights = { name : 'user', send : sendRight, receive : receiveRight, issue : issueRight, create : createRight};
                     if (MoBlo_AddressMap[nodename] == null ) {
                         var r_rights = [rights];
                         MoBlo_AddressMap[nodename] = r_rights;
@@ -726,8 +855,14 @@
 
                         x = x + ((MoBlo_AddressMap[nodename].length -1) * (2*radius + 10));
 
-                        drawBizNode(rights, x, y, radius);
+                        drawBizNode(rights, x, y, radius, false, false);
+						PM_nodeposition.push({limit: { xmin: x-radius, ymin: y-radius, xmax: x+radius, ymax: y+radius}, rights: rights,  x: x, y: y, radius: radius});						
                     }
+					
+					document.getElementById('sendRight').checked = false;
+					document.getElementById('receiveRight').checked = false;
+					document.getElementById('issueRight').checked = false;
+					document.getElementById('createRight').checked = false;
                 }
 
                 if (issueRight) {
@@ -750,7 +885,7 @@
 
                 if (connectRight) {
 
-                    var rights = ['control', connectRight];
+                    var rights = {name: 'control', connect: connectRight};
                     if (MoBlo_AddressMap[nodename] == null ) {
                         var r_rights = [rights];
                         MoBlo_AddressMap[nodename] = r_rights;
@@ -770,24 +905,49 @@
 
                         x = x + ((MoBlo_AddressMap[nodename].length -1) * (2*radius + 10));
 
-                        drawConnectNode(x, y, radius);
+                        drawConnectNode(x, y, radius, false, false);
+						PM_nodeposition.push({limit: { xmin: x-radius, ymin: y-radius, xmax: x+radius, ymax: y+radius}, rights: rights,  x: x, y: y, radius: radius});
                     }
+					
+					document.getElementById('connectRight').checked = false;
                 }
             }
 
         }
 
-        function drawUnitDefinition(unitdefinition, x, y) {
+        function drawUnitDefinition(unitdefinition, x, y, radius, selected, click) {
+			var color = '';
+			if (selected) {
+				color = 'rgb(128, 128, 128)';
+			} else {
+				color = 'rgb(0, 0, 0)';
+			}
+			
+            ctx_UD.fillStyle = 'rgb(255, 255, 255)';
+            ctx_UD.fillRect(x + 75-10, y + 50-10, radius+15, radius+15);
+			
+			if (click) {
+				ctx_UD.beginPath();
+				ctx_UD.strokeStyle = 'rgb(153, 217, 234)';
+				ctx_UD.lineWidth = 10;
+				ctx_UD.moveTo(x + 75 + radius,     y + 50 + radius);
+				ctx_UD.lineTo(x + 75,              y + 50 + radius);
+				ctx_UD.lineTo(x + 75 + radius*0.5, y + 50);
+				if (!unitdefinition[2]) {
+					ctx_UD.lineTo(x + 75 + radius,     y + 50 + radius);
+				}
+				ctx_UD.stroke();
+			}
+			
             //Node name
             ctx_UD.fillStyle = 'rgb(0, 102, 160)';
             ctx_UD.font = '18px serif';
             ctx_UD.fillText("owner : " + unitdefinition[0], x + 10, y + 20);
 
             //Unit
-            var radius = 60;
             ctx_UD.beginPath();
             ctx_UD.lineWidth = 4;
-            ctx_UD.strokeStyle = 'rgb(0, 0, 0)';
+            ctx_UD.strokeStyle = color;
             ctx_UD.moveTo(x + 75 + radius,     y + 50 + radius);
             ctx_UD.lineTo(x + 75,              y + 50 + radius);
             ctx_UD.lineTo(x + 75 + radius*0.5, y + 50);
@@ -797,12 +957,12 @@
             ctx_UD.stroke();
 
             //Unit name
-            ctx_UD.fillStyle = 'rgb(0, 0, 0)';
+            ctx_UD.fillStyle = color;
             ctx_UD.font = '18px serif';
             ctx_UD.fillText(unitdefinition[1], x + 200, y + 80);
 
             //Unit quantity
-            ctx_UD.fillStyle = 'rgb(0, 0, 0)';
+            ctx_UD.fillStyle = color;
             ctx_UD.font = 'italic 14px serif';
             ctx_UD.fillText(unitdefinition[3], x + 65, y + 130);
         }
@@ -832,26 +992,46 @@
                     var imgData=ctx_UD.getImageData(0,0,canvas_UD.width,canvas_UD.height);
                     canvas_UD.height = height + 160;
                     ctx_UD.putImageData(imgData,0,0);
-                } 
+                }
+				var radius = 60;
                 drawMoBloZone(ctx_UD, coord[2], coord[3]);
-                drawUnitDefinition(unitdefinition, coord[2], coord[3]);
+                drawUnitDefinition(unitdefinition, coord[2], coord[3], radius, false, false);
+				UD_unitposition.push({limit: { xmin: coord[2] + 75, ymin: coord[3]+50, xmax: coord[2]+75+radius, ymax: coord[3]+50+radius},  x: coord[2], y: coord[3], unitdefinition: unitdefinition, radius: radius});
+				alert(done);
 
             }
         }
-
-        function drawStreamDefinition(streamdefinition, x, y) {
+		
+        function drawStreamDefinition(streamdefinition, x, y, selected, click) {
+			var color = '';
+			if (selected) {
+				color = 'rgb(128, 128, 128)';
+			} else {
+				color = 'rgb(0, 0, 0)';
+			}
+			
+            var radius = 60;
+			
+            ctx_SD.fillStyle = 'rgb(255, 255, 255)';
+            ctx_SD.fillRect(x + 5, y + 40, 490, radius + 45);
+			
+			if (click) {
+				ctx_SD.lineWidth = 10;
+				ctx_SD.strokeStyle = 'rgb(153, 217, 234)';
+				ctx_SD.strokeRect(x + 45,     y + 50, 2 * radius, radius);
+			}
+			
             //Node name
             ctx_SD.fillStyle = 'rgb(0, 102, 160)';
             ctx_SD.font = '18px serif';
             ctx_SD.fillText("owner : " + streamdefinition[0], x + 10, y + 20);
 
             //Stream
-            var radius = 60;
             ctx_SD.lineWidth = 4;
             if (streamdefinition[2]) {
                 ctx_SD.setLineDash([10, 10]);
             }
-            ctx_SD.strokeStyle = 'rgb(0, 0, 0)';
+            ctx_SD.strokeStyle = color;
             ctx_SD.strokeRect(x + 45,     y + 50, 2 * radius, radius);
             ctx_SD.setLineDash([1, 0]);
             if (!streamdefinition[2]) {
@@ -859,7 +1039,7 @@
             }
 
             //Stream name
-            ctx_SD.fillStyle = 'rgb(0, 0, 0)';
+            ctx_SD.fillStyle = color;
             ctx_SD.font = '18px serif';
             ctx_SD.fillText(streamdefinition[1], x + 200, y + 80);
         }
@@ -891,7 +1071,7 @@
                 } 
                 drawMoBloZone(ctx_SD, coord[2], coord[3]);
                 drawStreamDefinition(streamdefinition, coord[2], coord[3]);
-
+				SD_streamposition.push({limit: { xmin: coord[2] + 45, ymin: coord[3] + 40, xmax: coord[2] + 165, ymax:  coord[3] + 120}, x: coord[2], y: coord[3], streamdefinition: streamdefinition});
             }
         }
 
@@ -919,7 +1099,7 @@
                                     var alreadyadded = false;
                                     for (var k = 0; k < r_rights.length; k++) {
                                         var rights = r_rights[k];
-                                        if (rights[0] == 'user' && rights[1] && !alreadyadded) {
+                                        if (rights.name == 'user' && rights.send && !alreadyadded) {
                                             var option = document.createElement("option");
                                             option.text = MoBlo_Nodelist[j];
                                             listNodeStreamPublicationName.add(option);
@@ -946,24 +1126,53 @@
             }
         }
 
-        function drawStreamPublication(publicationdefinition, x, y) {
+        function drawStreamPublication(publicationdefinition, x, y, selected, click) {
+			var color = '';
+			if (selected) {
+				color = 'rgb(128, 128, 128)';
+			} else {
+				color = 'rgb(0, 0, 0)';
+			}
+			
+            ctx_SP.fillStyle = 'rgb(255, 255, 255)';
+            ctx_SP.fillRect(x+5, y+5, 1000, 140);
+			
+            var radiusArrow = 20;
+            var radiusStream = 60;
+			
+			if (click) {
+				ctx_SP.beginPath();
+				ctx_SP.strokeStyle = 'rgb(153, 217, 234)';
+				ctx_SP.lineWidth = 10;
+				ctx_SP.moveTo(x + 10 + 100 + 5,     y + 80);
+				ctx_SP.lineTo(920, y + 80);
+				ctx_SP.moveTo(920 - 1.33 * radiusArrow,     y + 80 - 0.66 * radiusArrow);
+				ctx_SP.lineTo(920, y + 80);
+				ctx_SP.moveTo(920 - 1.33 * radiusArrow,     y + 80 + 0.66 * radiusArrow);
+				ctx_SP.lineTo(920, y + 80);
+				ctx_SP.stroke();
+				
+				ctx_SP.lineWidth = 10;
+				ctx_SP.strokeStyle = 'rgb(153, 217, 234)';
+				ctx_SP.strokeRect(1000 - 2 * radiusStream,     y + 50, 2 * radiusStream, radiusStream);
+			}
+			
             //Publication name
             ctx_SP.fillStyle = 'rgb(0, 102, 160)';
             ctx_SP.font = '18px serif';
             ctx_SP.fillText("publication : " + publicationdefinition[2], x + 10, y + 20);
 
             //Node name
-            ctx_SP.fillStyle = 'rgb(0, 0, 0)';
+            ctx_SP.fillStyle = color;
             ctx_SP.font = '18px serif';
             ctx_SP.textAlign = "right";
             ctx_SP.fillText(publicationdefinition[1], x + 105, y + 85);
             ctx_SP.textAlign = "left";
 
             //Arrow
-            var radiusArrow = 20;
             ctx_SP.beginPath();
             ctx_SP.lineWidth = 4;
-            ctx_SP.strokeStyle = 'rgb(0, 0, 0)';
+            ctx_SP.strokeStyle = color;
             ctx_SP.moveTo(x + 10 + 100 + 5,     y + 80);
             ctx_SP.lineTo(920, y + 80);
             ctx_SP.moveTo(920 - 1.33 * radiusArrow,     y + 80 - 0.66 * radiusArrow);
@@ -973,7 +1182,7 @@
             ctx_SP.stroke();
 
             //Publication values
-            ctx_SP.fillStyle = 'rgb(0, 0, 0)';
+            ctx_SP.fillStyle = color;
             ctx_SP.font = '18px serif';
             ctx_SP.textAlign = "center";
             var center = Math.trunc((x + 10 + 100 + 5)+(920 - (x + 10 + 100 + 5))/2); 
@@ -981,16 +1190,15 @@
             ctx_SP.textAlign = "left";
 
             //Stream
-            var radiusStream = 60;
             ctx_SP.lineWidth = 4;
             if (publicationdefinition[5]) {
                 ctx_SP.setLineDash([10, 10]);
             }
-            ctx_SP.strokeStyle = 'rgb(0, 0, 0)';
+            ctx_SP.strokeStyle = color;
             ctx_SP.strokeRect(1000 - 2 * radiusStream,     y + 50, 2 * radiusStream, radiusStream);
             ctx_SP.setLineDash([1, 0]);
             if (!publicationdefinition[5]) {
-                ctx_SP.strokeRect(1000 - 2 * radiusStream, y + 55, (2 * radiusStream) - 10, radiusStream -10);
+                ctx_SP.strokeRect(1000 - 2 * radiusStream +5, y + 55, (2 * radiusStream) - 10, radiusStream -10);
             }
 
         }
@@ -1028,29 +1236,56 @@
 
                 var line = MoBlo_PublicationDefinitionList.length;
                 drawMoBloDoubleZone(ctx_SP, 5 + line * 160);
-                drawStreamPublication(publicationdefinition, 5, 5 + line * 160);
+                drawStreamPublication(publicationdefinition, 5, 5 + line * 160, false, false);
+				SP_publiposition.push({limit: { xmin: 10, ymin: 10 + line * 160, xmax: 1010, ymax: 10 + line * 160 + 140}, x: 5, y: 5 + line * 160, publicationdefinition: publicationdefinition});
             }
         }
 
-        function BusinessTransaction(transactiondefinition, x, y) {
-//[originname, destinationname, assetname, assetvalue, transactiondata, actionname]
+        function BusinessTransaction(transactiondefinition, x, y, selected, click) {
+			var color = '';
+			if (selected) {
+				color = 'rgb(128, 128, 128)';
+			} else {
+				color = 'rgb(0, 0, 0)';
+			}
+			
+            ctx_BT.fillStyle = 'rgb(255, 255, 255)';
+            ctx_BT.fillRect(x+5, y+5, 1010, 55);
+			
+            var radiusArrow = 20;
+			
+			if (click) {
+				ctx_BT.beginPath();
+				ctx_BT.strokeStyle = 'rgb(153, 217, 234)';
+				ctx_BT.lineWidth = 10;
+				ctx_BT.moveTo(x + 10 + 100 + 5,     y + 40);
+				ctx_BT.lineTo(1020 - 5 - 105 - 10, y + 40);
+				ctx_BT.moveTo(1020 - 5 - 105 - 10 - 1.33 * radiusArrow,     y + 40 - 0.66 * radiusArrow);
+				ctx_BT.lineTo(1020 - 5 - 105 - 10, y + 40);
+				ctx_BT.moveTo(1020 - 5 - 105 - 10 - 1.33 * radiusArrow,     y + 40 + 0.66 * radiusArrow);
+				ctx_BT.lineTo(1020 - 5 - 105 - 10, y + 40);
+				ctx_BT.stroke();
+				
+				ctx_BT.fillStyle = 'rgb(153, 217, 234)';
+				ctx_BT.fillRect(x + 115, y+5, 760 - x, 25);
+			}
+			
             //Origin name
-            ctx_BT.fillStyle = 'rgb(0, 0, 0)';
+            ctx_BT.fillStyle = color;
             ctx_BT.font = '18px serif';
             ctx_BT.textAlign = "right";
             ctx_BT.fillText(transactiondefinition[0], x + 105, y + 45);
             ctx_BT.textAlign = "left";
 
             //Destination name
-            ctx_BT.fillStyle = 'rgb(0, 0, 0)';
+            ctx_BT.fillStyle = color;
             ctx_BT.font = '18px serif';
             ctx_BT.fillText(transactiondefinition[1], 1020 - 5 - 105, y + 45);
 
             //Arrow
-            var radiusArrow = 20;
             ctx_BT.beginPath();
             ctx_BT.lineWidth = 4;
-            ctx_BT.strokeStyle = 'rgb(0, 0, 0)';
+            ctx_BT.strokeStyle = color;
             ctx_BT.moveTo(x + 10 + 100 + 5,     y + 40);
             ctx_BT.lineTo(1020 - 5 - 105 - 10, y + 40);
             ctx_BT.moveTo(1020 - 5 - 105 - 10 - 1.33 * radiusArrow,     y + 40 - 0.66 * radiusArrow);
@@ -1060,7 +1295,7 @@
             ctx_BT.stroke();
 
             //Publication values
-            ctx_BT.fillStyle = 'rgb(0, 0, 0)';
+            ctx_BT.fillStyle = color;
             ctx_BT.font = '18px serif';
             ctx_BT.textAlign = "center";
             var center = Math.trunc((x + 10 + 100 + 5)+(1020 - 5 - 105 - 10 - (x + 10 + 100 + 5))/2);
@@ -1107,7 +1342,6 @@
                 var nbtransac = MoBlo_TransactionDefinitionList.length - 1;
 
                 var yZone = 150 + nbactions * 50 + nbtransac * 60;
-alert([yZone,nbactions, nbtransac]);
                 //add graphic zone
                 var canvas_BT = document.querySelector('.mobloBusinessTransactions');
                 var imgData= ctx_BT.getImageData(0,0,canvas_BT.width,canvas_BT.height);
@@ -1132,14 +1366,212 @@ alert([yZone,nbactions, nbtransac]);
                     ctx_BT.fillText("Action : " + actionname, 15, yZone + 40);
 
                     yZone = yZone + 50;
-                }/* else {
-                    yZone = yZone + 20;
-                }*/
-
-                BusinessTransaction(transactiondefinition, 5, yZone);
+                }
+				
+                BusinessTransaction(transactiondefinition, 5, yZone, false, false);
+				BT_transacposition.push({limit: { xmin: 10, ymin: yZone+5, xmax: 1010, ymax: yZone+50}, x: 5, y: yZone, transactiondefinition: transactiondefinition});
             }
         }
 
+		function getMousePos(canvas, evt) {
+			var rect = canvas.getBoundingClientRect();
+			return {
+				x: evt.clientX - rect.left,
+				y: evt.clientY - rect.top
+			};
+		}
+		
+		function selectzone() {
+			var positionlist = [];
+			if (MoBlo_ActiveDiagramme == 'PM' ) {
+				positionlist = PM_nodeposition;
+			} else if (MoBlo_ActiveDiagramme == 'UD' ) {
+				positionlist = UD_unitposition;
+			} else if (MoBlo_ActiveDiagramme == 'BT' ) {
+				positionlist = BT_transacposition;
+			} else if (MoBlo_ActiveDiagramme == 'SD' ) {
+				positionlist = SD_streamposition;
+			} else if (MoBlo_ActiveDiagramme == 'SP' ) {
+				positionlist = SP_publiposition;
+			}
+			
+			var selectedzone = -1;
+			for (var i = 0; i < positionlist.length; i++) {
+				var zonelimits = positionlist[i].limit;
+				if (MoBlo_MousePosition.x >= zonelimits.xmin && MoBlo_MousePosition.y >= zonelimits.ymin && 
+						MoBlo_MousePosition.x <= zonelimits.xmax && MoBlo_MousePosition.y <= zonelimits.ymax ) {
+					//in zone
+					selectedzone = i;
+				}
+			}
+			
+			if (MoBlo_SelectedItem != selectedzone) {
+				if (MoBlo_ActiveDiagramme == 'PM' ) {
+					var clicked = false;
+					
+					if (MoBlo_SelectedItem >= 0) {
+						if (MoBlo_SelectedItem == MoBlo_ClickedItem) {
+							clicked = true;
+						}
+						if (positionlist[MoBlo_SelectedItem].rights.name == 'user') {
+							drawBizNode(positionlist[MoBlo_SelectedItem].rights, positionlist[MoBlo_SelectedItem].x, positionlist[MoBlo_SelectedItem].y, positionlist[MoBlo_SelectedItem].radius, false, clicked);
+						} else if (positionlist[MoBlo_SelectedItem].rights.name == 'control') {
+							drawConnectNode(positionlist[MoBlo_SelectedItem].x, positionlist[MoBlo_SelectedItem].y, positionlist[MoBlo_SelectedItem].radius, false, clicked);
+						} else if (positionlist[MoBlo_SelectedItem].rights.name == 'admin') {
+							drawAdminNode(positionlist[MoBlo_SelectedItem].rights, positionlist[MoBlo_SelectedItem].x, positionlist[MoBlo_SelectedItem].y, positionlist[MoBlo_SelectedItem].radius, false, clicked);
+						}
+					}
+					if (selectedzone >= 0) {
+						if (selectedzone == MoBlo_ClickedItem) {
+							clicked = true;
+						}
+						if (positionlist[selectedzone].rights.name == 'user') {
+							drawBizNode(positionlist[selectedzone].rights, positionlist[selectedzone].x, positionlist[selectedzone].y, positionlist[selectedzone].radius, true, clicked);
+						} else if (positionlist[selectedzone].rights.name == 'control') {
+							drawConnectNode(positionlist[selectedzone].x, positionlist[selectedzone].y, positionlist[selectedzone].radius, true, clicked);
+						} else if (positionlist[selectedzone].rights.name == 'admin') {
+							drawAdminNode(positionlist[selectedzone].rights, positionlist[selectedzone].x, positionlist[selectedzone].y, positionlist[selectedzone].radius, true, clicked);
+						}
+					}
+				} else if (MoBlo_ActiveDiagramme == 'UD' ) {
+					var clicked = false;
+					
+					if (MoBlo_SelectedItem >= 0) {
+						if (MoBlo_SelectedItem == MoBlo_ClickedItem) {
+							clicked = true;
+						}
+						drawUnitDefinition(positionlist[MoBlo_SelectedItem].unitdefinition, positionlist[MoBlo_SelectedItem].x, positionlist[MoBlo_SelectedItem].y, positionlist[MoBlo_SelectedItem].radius, false, clicked);
+					}
+					if (selectedzone >= 0) {
+						if (selectedzone == MoBlo_ClickedItem) {
+							clicked = true;
+						}
+						drawUnitDefinition(positionlist[selectedzone].unitdefinition, positionlist[selectedzone].x, positionlist[selectedzone].y, positionlist[selectedzone].radius, true, clicked);
+					} 
+				} else if (MoBlo_ActiveDiagramme == 'BT' ) {
+					var clicked = false;
+					
+					if (MoBlo_SelectedItem >= 0) {
+						if (MoBlo_SelectedItem == MoBlo_ClickedItem) {
+							clicked = true;
+						}
+						BusinessTransaction(positionlist[MoBlo_SelectedItem].transactiondefinition, positionlist[MoBlo_SelectedItem].x, positionlist[MoBlo_SelectedItem].y, false, clicked);
+					}
+					if (selectedzone >= 0) {
+						if (selectedzone == MoBlo_ClickedItem) {
+							clicked = true;
+						}
+						BusinessTransaction(positionlist[selectedzone].transactiondefinition, positionlist[selectedzone].x, positionlist[selectedzone].y, true, clicked);
+						
+					}
+				} else if (MoBlo_ActiveDiagramme == 'SD' ) {
+					var clicked = false;
+					
+					if (MoBlo_SelectedItem >= 0) {
+						if (MoBlo_SelectedItem == MoBlo_ClickedItem) {
+							clicked = true;
+						}
+						drawStreamDefinition(positionlist[MoBlo_SelectedItem].streamdefinition, positionlist[MoBlo_SelectedItem].x, positionlist[MoBlo_SelectedItem].y, false, clicked);
+					}
+					if (selectedzone >= 0) {
+						if (selectedzone == MoBlo_ClickedItem) {
+							clicked = true;
+						}
+						drawStreamDefinition(positionlist[selectedzone].streamdefinition, positionlist[selectedzone].x, positionlist[selectedzone].y, true, clicked);
+						
+					}
+				} else if (MoBlo_ActiveDiagramme == 'SP' ) {
+					var clicked = false;
+					
+					if (MoBlo_SelectedItem >= 0) {
+						if (MoBlo_SelectedItem == MoBlo_ClickedItem) {
+							clicked = true;
+						}
+						drawStreamPublication(positionlist[MoBlo_SelectedItem].publicationdefinition, positionlist[MoBlo_SelectedItem].x, positionlist[MoBlo_SelectedItem].y, false, clicked);
+					}
+					if (selectedzone >= 0) {
+						if (selectedzone == MoBlo_ClickedItem) {
+							clicked = true;
+						}
+						drawStreamPublication(positionlist[selectedzone].publicationdefinition, positionlist[selectedzone].x, positionlist[selectedzone].y, true, clicked);
+					}
+				}
+
+				MoBlo_SelectedItem = selectedzone;
+			}
+			
+		}
+		
+		function clickzone() {
+			var previousclick = MoBlo_ClickedItem;
+			if (MoBlo_ClickedItem != MoBlo_SelectedItem) {
+				MoBlo_ClickedItem = MoBlo_SelectedItem;
+			} else {
+				MoBlo_ClickedItem = -1;
+			}
+			var selected = false;
+			if (previousclick == MoBlo_ClickedItem) {
+				selected = true;
+			}
+			
+			var positionlist = [];
+			if (MoBlo_ActiveDiagramme == 'PM' ) {
+				positionlist = PM_nodeposition;
+				if (previousclick >= 0) {
+					if (positionlist[previousclick].rights.name == 'user') {
+						drawBizNode(positionlist[previousclick].rights, positionlist[previousclick].x, positionlist[previousclick].y, positionlist[previousclick].radius, selected, false);
+					} else if (positionlist[previousclick].rights.name == 'control') {
+						drawConnectNode(positionlist[previousclick].x, positionlist[previousclick].y, positionlist[previousclick].radius, selected, false);
+					} else if (positionlist[previousclick].rights.name == 'admin') {
+						drawAdminNode(positionlist[previousclick].rights, positionlist[previousclick].x, positionlist[previousclick].y, positionlist[previousclick].radius, selected, false);
+					}
+					
+				}
+				if (MoBlo_ClickedItem >= 0) {
+					if (positionlist[MoBlo_ClickedItem].rights.name == 'user') {
+						drawBizNode(positionlist[MoBlo_ClickedItem].rights, positionlist[MoBlo_ClickedItem].x, positionlist[MoBlo_ClickedItem].y, positionlist[MoBlo_ClickedItem].radius, true, true);
+					} else if (positionlist[MoBlo_ClickedItem].rights.name == 'control') {
+						drawConnectNode(positionlist[MoBlo_ClickedItem].x, positionlist[MoBlo_ClickedItem].y, positionlist[MoBlo_ClickedItem].radius, true, true);
+					} else if (positionlist[MoBlo_ClickedItem].rights.name == 'admin') {
+						drawAdminNode(positionlist[MoBlo_ClickedItem].rights, positionlist[MoBlo_ClickedItem].x, positionlist[MoBlo_ClickedItem].y, positionlist[MoBlo_ClickedItem].radius, true, true);
+					}
+				}
+			} else if (MoBlo_ActiveDiagramme == 'UD' ) {
+				positionlist = UD_unitposition;
+				if (previousclick >= 0) {
+					drawUnitDefinition(positionlist[previousclick].unitdefinition, positionlist[previousclick].x, positionlist[previousclick].y, positionlist[previousclick].radius, selected, false);
+				}
+				if (MoBlo_ClickedItem >= 0) {
+					drawUnitDefinition(positionlist[MoBlo_ClickedItem].unitdefinition, positionlist[MoBlo_ClickedItem].x, positionlist[MoBlo_ClickedItem].y, positionlist[MoBlo_ClickedItem].radius, true, true);
+				}
+			} else if (MoBlo_ActiveDiagramme == 'BT' ) {
+				positionlist = BT_transacposition;
+				if (previousclick >= 0) {
+					BusinessTransaction(positionlist[previousclick].transactiondefinition, positionlist[previousclick].x, positionlist[previousclick].y, selected, false);
+				}
+				if (MoBlo_ClickedItem >= 0) {
+					BusinessTransaction(positionlist[MoBlo_ClickedItem].transactiondefinition, positionlist[MoBlo_ClickedItem].x, positionlist[MoBlo_ClickedItem].y, true, true);
+				}
+			} else if (MoBlo_ActiveDiagramme == 'SD' ) {
+				positionlist = SD_streamposition;
+				if (previousclick >= 0) {
+					drawStreamDefinition(positionlist[previousclick].streamdefinition, positionlist[previousclick].x, positionlist[previousclick].y, selected, false);
+				}
+				if (MoBlo_ClickedItem >= 0) {
+					drawStreamDefinition(positionlist[MoBlo_ClickedItem].streamdefinition, positionlist[MoBlo_ClickedItem].x, positionlist[MoBlo_ClickedItem].y, true, true);
+				}
+			} else if (MoBlo_ActiveDiagramme == 'SP' ) {
+				positionlist = SP_publiposition;
+				if (previousclick >= 0) {
+					drawStreamPublication(positionlist[previousclick].publicationdefinition, positionlist[previousclick].x, positionlist[previousclick].y, selected, false);
+					
+				}
+				if (MoBlo_ClickedItem >= 0) {
+					drawStreamPublication(positionlist[MoBlo_ClickedItem].publicationdefinition, positionlist[MoBlo_ClickedItem].x, positionlist[MoBlo_ClickedItem].y, true, true);
+				}
+			}
+			
+		}
     </script>
   </body>
 </html>

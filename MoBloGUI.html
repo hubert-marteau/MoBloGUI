@@ -62,7 +62,7 @@
 
     <div style="padding:3px; border-top:5px dashed #fff; border-bottom:5px dashed #fff; background-color:#e3e3e3;">
         <h3>Project Definition</h3>
-        Project name: <input type="text" id="project_name"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Designer name: <input type="text" id="designer_name">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<button onclick="initNames()">Give Project Names</button>
+        Project name: <input type="text" id="project_name"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Designer name: <input type="text" id="designer_name">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<button onclick="initNames()">Give Project Names</button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<button onclick="export_all()">Export</button>
         <br />
         <br />
     </div>
@@ -104,7 +104,7 @@
                         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                     </td>
                     <td valign="bottom">
-                        <button onclick="addPopulationMapAddress()">Add Address</button>
+                        <button onclick="managePopulationMapAddress()" name="PMAddAddress" id="PMAddAddress">Add Address</button>
                     </td>
                 </tr>
             </table>
@@ -133,7 +133,7 @@
                     <td valign="top">
                         Unit Name &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="text" id="unitname">
                         <br />
-                        Unit Quantity &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="text" id="unitquantity">
+                        Unit Quantity &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="text" id="unitquantity" type="number">
                         <br />
                         Opened &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="radio" name="unitopened" value="true" id="unitopenedTrue" checked="checked"> True &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="radio" name="unitopened" value="false" id="unitopenedFalse"> False
                         <br />
@@ -142,7 +142,7 @@
                         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                     </td>
                     <td valign="bottom">
-                        <button onclick="addUnitDefinition()">Add Unit</button>
+                        <button onclick="manageUnitDefinition()" name="UDAddUnit" id="UDAddUnit" >Add Unit</button>
                     </td>
                 </tr>
             </table>
@@ -180,13 +180,13 @@
                 </tr>
                 <tr>
                     <td valign="top">
-                        Origin : &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<select id="listOriginNodeName"></select>
+                        Origin : &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <select id="listOriginNodeName"></select>
                     </td>
                     <td valign="top">
                         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                     </td>
                     <td valign="top">
-                        Destination : &nbsp;&nbsp;&nbsp;<select id="listDestinationNodeName"></select>
+                        Destination : &nbsp;&nbsp;&nbsp; <select id="listDestinationNodeName"></select>
                     </td>
                     <td valign="top">
                         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
@@ -197,7 +197,7 @@
                 </tr>
                 <tr>
                     <td valign="top">
-                        Unit : &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<select id="listAssetName"></select>
+                        Unit : &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <select id="listAssetName" onchange="checkUD()"><option value="">___</option></select>
                     </td>
                     <td valign="top">
                         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
@@ -220,9 +220,21 @@
                         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                     </td>
                     <td valign="top">
-                        <button onclick="addBusinessTransaction()">Add transaction</button>
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                     </td>
                 </tr>
+                <tr>
+                    <td valign="top" colspan="3">
+                        BlockChain Transaction &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="radio" name="BCTransaction" value="true" id="BCTransactionTrue" checked="checked"> True &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="radio" name="BCTransaction" value="false" id="BCTransactionFalse"> False
+                    </td>
+                    <td valign="top">
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    </td>
+                    <td valign="top">
+                        <button onclick="manageBusinessTransaction()"  name="BTAddTransaction" id="BTAddTransaction" >Add transaction</button>
+                    </td>
+                </tr>
+                
             </table>
 
             <br />
@@ -256,7 +268,7 @@
                         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                     </td>
                     <td valign="bottom">
-                        <button onclick="addStreamDefinition()">Add Stream</button>
+                        <button onclick="manageStreamDefinition()" name="SDAddStream" id="SDAddStream" >Add Stream</button>
                     </td>
                 </tr>
             </table>
@@ -296,7 +308,7 @@
                         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                     </td>
                     <td valign="bottom">
-                        <button onclick="addStreamPublication()">Publish in Stream</button>
+                        <button onclick="manageStreamPublication()"  name="SPPublishStream" id="SPPublishStream">Publish in Stream</button>
                     </td>
                 </tr>
             </table>
@@ -338,7 +350,14 @@
             if (diagrammeName == 'StreamPublication') {
                 loadStreamNodes();
             }
+			
+			MoBlo_SelectedItem = -1;
+			MoBlo_ClickedItem = -1;
         }
+        
+		//Export variable
+		var MoBlo_Export = {};
+		
 		// GUI Variables
 		var MoBlo_ActiveDiagramme = "";
 		var MoBlo_MousePosition = {};
@@ -354,11 +373,12 @@
 		//Moblo Variables
         var MoBlo_Nodelist = [];
         var MoBlo_AddressMap = {};
-        var MoBlo_UnitDefinitionList = [];
-        var MoBlo_ActionNameList = [];
-        var MoBlo_TransactionDefinitionList = [];
-        var MoBlo_StreamDefinitionList = [];
-        var MoBlo_PublicationDefinitionList = [];
+        var MoBlo_UnitDefinitionNb = 0;
+		var MoBlo_UnitMap = {};
+		var MoBlo_ActionNameList = [];
+        var MoBlo_TransactionDefinitionMap = {};
+        var MoBlo_StreamMap = {};
+        var MoBlo_PublicationMap = {};
 
         var canvas_PM = document.querySelector('.mobloPopulationMap');
         var ctx_PM = canvas_PM.getContext('2d');
@@ -427,6 +447,18 @@
 		canvas_SP.addEventListener('mouseup', function(evt) {
 			clickzone();
 		}, false);
+		
+		/***********************************************************
+		************************************************************
+		******************** EXPORT  *******************************
+		************************************************************
+		***********************************************************/
+		function export_all() {
+			MoBlo_Export = {"PM_nodeposition": PM_nodeposition};
+			var export_json = JSON.stringify(MoBlo_Export);
+			alert(export_json);
+			//obj = JSON.parse(json);
+		}
 
         function initNames() {
             var projectName = document.getElementById("project_name").value;
@@ -468,7 +500,7 @@
 
             ctx.fillStyle = 'rgb(125, 125, 125)';
             ctx.font = 'italic 14px serif';
-            ctx.fillText('MoBlo GUI v1.0.1', 900, 25);
+            ctx.fillText('MoBlo GUI v1.0.2', 900, 25);
 
         }
 
@@ -785,6 +817,75 @@
                 ctx_PM.stroke();
             }
         }
+		
+		function getPMNoderights(nodename, rightsindex, rightsname) {
+			var rights = MoBlo_AddressMap[nodename][rightsindex];
+			if (rights.name == rightsname) {
+				return rights;
+			}
+		}
+		
+		function modifyPMNoderights(nodename, rightsindex, rightsname, newrights) {
+			var rights = MoBlo_AddressMap[nodename][rightsindex];
+			if (rights.name == rightsname) {
+				MoBlo_AddressMap[nodename][rightsindex]=newrights;
+			}
+		}
+		
+		
+		
+		function managePopulationMapAddress() {
+			if (MoBlo_ClickedItem >= 0) {
+				modifyPopulationMapAddress();
+			} else {
+				addPopulationMapAddress();
+			}
+		}
+		
+        function modifyPopulationMapAddress() {
+			var connectRight = document.getElementById('connectRight').checked;
+			var sendRight = document.getElementById('sendRight').checked;
+			var receiveRight = document.getElementById('receiveRight').checked;
+			var issueRight = document.getElementById('issueRight').checked;
+			var createRight = document.getElementById('createRight').checked;
+			var processRight = document.getElementById('processRight').checked;
+			var activateRight = document.getElementById('activateRight').checked;
+			var adminRight = document.getElementById('adminRight').checked;
+			var originRight = document.getElementById('originRight').checked;
+		
+			var positionlist = PM_nodeposition;
+			var rights = getPMNoderights(positionlist[MoBlo_ClickedItem].nodename, positionlist[MoBlo_ClickedItem].rightsindex, positionlist[MoBlo_ClickedItem].rightsname);
+			var newrights = {};
+			
+			if (rights.name == 'user') {
+				newrights = { name : 'user', send : sendRight, receive : receiveRight, issue : issueRight, create : createRight};
+				drawBizNode(newrights, positionlist[MoBlo_ClickedItem].x, positionlist[MoBlo_ClickedItem].y, positionlist[MoBlo_ClickedItem].radius, false, true);
+				
+                if (issueRight) {
+                   var listNodeIssueName = document.getElementById("listNodeIssueName");
+                    var option = document.createElement("option");
+                    option.text = positionlist[MoBlo_ClickedItem].nodename;
+                    listNodeIssueName.add(option);
+                }
+
+                if (createRight) {
+
+                    var listNodeStreamName = document.getElementById("listNodeStreamName");
+                    var option = document.createElement("option");
+                    option.text = positionlist[MoBlo_ClickedItem].nodename;
+                    listNodeStreamName.add(option);
+                }				
+				
+			} else if (rights.name == 'control') {
+				newrights = {name: 'control', connect: connectRight};
+				drawConnectNode(positionlist[MoBlo_ClickedItem].x, positionlist[MoBlo_ClickedItem].y, positionlist[MoBlo_ClickedItem].radius, false, false);
+				
+			} else if (rights.name == 'admin') {
+				newrights = { name: 'admin', origin: originRight, admin: adminRight, activate: activateRight, process: processRight};
+				drawAdminNode(newrights, positionlist[MoBlo_ClickedItem].x, positionlist[MoBlo_ClickedItem].y, positionlist[MoBlo_ClickedItem].radius, false, true);
+			}
+			modifyPMNoderights(positionlist[MoBlo_ClickedItem].nodename, positionlist[MoBlo_ClickedItem].rightsindex, positionlist[MoBlo_ClickedItem].rightsname, newrights);
+		}
 
         function addPopulationMapAddress() {
             var selectedIndex = document.getElementById("listNodeName").selectedIndex;
@@ -812,8 +913,13 @@
                         r_rights.push(rights);
                         MoBlo_AddressMap[nodename] = r_rights;
                     }
+					var rightsindex = MoBlo_AddressMap[nodename].length - 1;
 
-                    if (MoBlo_Nodelist != null) {
+                    if (rightsindex > 5) {
+						alert("MAX 6 addresses per node !");
+						return;
+					}
+					if (MoBlo_Nodelist != null) {
                         var nodeindex = MoBlo_Nodelist.indexOf(nodename);
                         
                         var coord = calculateMoBloCorner(nodeindex+1);
@@ -824,7 +930,7 @@
                         x = x + ((MoBlo_AddressMap[nodename].length -1) * (2*radius + 10));
 
                         drawAdminNode(rights, x, y, radius, false, false);
-						PM_nodeposition.push({limit: { xmin: x-radius, ymin: y-radius, xmax: x+radius, ymax: y+radius}, rights: rights,  x: x, y: y, radius: radius});
+						PM_nodeposition.push({limit: { xmin: x-radius, ymin: y-radius, xmax: x+radius, ymax: y+radius}, rightsname: rights.name, rightsindex: rightsindex, x: x, y: y, radius: radius, nodename: nodename, selectedIndex:selectedIndex});
                     }
 					
 					document.getElementById('processRight').checked = false;
@@ -844,7 +950,12 @@
                         r_rights.push(rights);
                         MoBlo_AddressMap[nodename] = r_rights;
                     }
+					var rightsindex = MoBlo_AddressMap[nodename].length - 1;
 
+                    if (rightsindex > 5) {
+						alert("MAX 6 addresses per node !");
+						return;
+					}
                     if (MoBlo_Nodelist != null) {
                         var nodeindex = MoBlo_Nodelist.indexOf(nodename);
                         
@@ -856,7 +967,7 @@
                         x = x + ((MoBlo_AddressMap[nodename].length -1) * (2*radius + 10));
 
                         drawBizNode(rights, x, y, radius, false, false);
-						PM_nodeposition.push({limit: { xmin: x-radius, ymin: y-radius, xmax: x+radius, ymax: y+radius}, rights: rights,  x: x, y: y, radius: radius});						
+						PM_nodeposition.push({limit: { xmin: x-radius, ymin: y-radius, xmax: x+radius, ymax: y+radius}, rightsname: rights.name, rightsindex: rightsindex,  x: x, y: y, radius: radius, nodename: nodename, selectedIndex:selectedIndex});						
                     }
 					
 					document.getElementById('sendRight').checked = false;
@@ -894,7 +1005,12 @@
                         r_rights.push(rights);
                         MoBlo_AddressMap[nodename] = r_rights;
                     }
+					var rightsindex = MoBlo_AddressMap[nodename].length - 1;
 
+                    if (rightsindex > 5) {
+						alert("MAX 6 addresses per node !");
+						return;
+					}
                     if (MoBlo_Nodelist != null) {
                         var nodeindex = MoBlo_Nodelist.indexOf(nodename);
                         
@@ -906,7 +1022,7 @@
                         x = x + ((MoBlo_AddressMap[nodename].length -1) * (2*radius + 10));
 
                         drawConnectNode(x, y, radius, false, false);
-						PM_nodeposition.push({limit: { xmin: x-radius, ymin: y-radius, xmax: x+radius, ymax: y+radius}, rights: rights,  x: x, y: y, radius: radius});
+						PM_nodeposition.push({limit: { xmin: x-radius, ymin: y-radius, xmax: x+radius, ymax: y+radius}, rightsname: rights.name, rightsindex: rightsindex,  x: x, y: y, radius: radius, nodename: nodename, selectedIndex:selectedIndex});
                     }
 					
 					document.getElementById('connectRight').checked = false;
@@ -914,7 +1030,22 @@
             }
 
         }
-
+		
+		/**************************************************************
+		***************************************************************
+		***************** Unit Definition *****************************
+		***************************************************************
+		**************************************************************/
+		function checkUD() {
+			var selectedIndexAssetName = document.getElementById("listAssetName").selectedIndex;
+			if (selectedIndexAssetName == 0) {
+				document.getElementById("assetvalue").disabled = true;
+			} else {
+				document.getElementById("assetvalue").disabled = false;
+			}
+		}
+		
+		
         function drawUnitDefinition(unitdefinition, x, y, radius, selected, click) {
 			var color = '';
 			if (selected) {
@@ -924,7 +1055,7 @@
 			}
 			
             ctx_UD.fillStyle = 'rgb(255, 255, 255)';
-            ctx_UD.fillRect(x + 75-10, y + 50-10, radius+15, radius+15);
+            ctx_UD.fillRect(x + 5, y + 5, 490, 140);
 			
 			if (click) {
 				ctx_UD.beginPath();
@@ -933,7 +1064,7 @@
 				ctx_UD.moveTo(x + 75 + radius,     y + 50 + radius);
 				ctx_UD.lineTo(x + 75,              y + 50 + radius);
 				ctx_UD.lineTo(x + 75 + radius*0.5, y + 50);
-				if (!unitdefinition[2]) {
+				if (!unitdefinition.unitopenedTrue) {
 					ctx_UD.lineTo(x + 75 + radius,     y + 50 + radius);
 				}
 				ctx_UD.stroke();
@@ -942,7 +1073,7 @@
             //Node name
             ctx_UD.fillStyle = 'rgb(0, 102, 160)';
             ctx_UD.font = '18px serif';
-            ctx_UD.fillText("owner : " + unitdefinition[0], x + 10, y + 20);
+            ctx_UD.fillText("owner : " + unitdefinition.nodename, x + 10, y + 20);
 
             //Unit
             ctx_UD.beginPath();
@@ -951,7 +1082,7 @@
             ctx_UD.moveTo(x + 75 + radius,     y + 50 + radius);
             ctx_UD.lineTo(x + 75,              y + 50 + radius);
             ctx_UD.lineTo(x + 75 + radius*0.5, y + 50);
-            if (!unitdefinition[2]) {
+            if (!unitdefinition.unitopenedTrue) {
                 ctx_UD.lineTo(x + 75 + radius,     y + 50 + radius);
             }
             ctx_UD.stroke();
@@ -959,24 +1090,55 @@
             //Unit name
             ctx_UD.fillStyle = color;
             ctx_UD.font = '18px serif';
-            ctx_UD.fillText(unitdefinition[1], x + 200, y + 80);
+            ctx_UD.fillText(unitdefinition.unitname, x + 200, y + 80);
 
             //Unit quantity
             ctx_UD.fillStyle = color;
             ctx_UD.font = 'italic 14px serif';
-            ctx_UD.fillText(unitdefinition[3], x + 65, y + 130);
+            ctx_UD.fillText(unitdefinition.unitquantity, x + 65, y + 130);
         }
+		
+		function manageUnitDefinition() {
+			if (MoBlo_ClickedItem >= 0) {
+				modifyUnitDefinition();
+			} else {
+				addUnitDefinition();
+			}
+		}
+		
+        function modifyUnitDefinition() {
+            var selectedIndex = document.getElementById("listNodeIssueName").selectedIndex;
+            var nodename = document.getElementById("listNodeIssueName").options[selectedIndex].value;
+            var unitname = document.getElementById("unitname").value;
+            var unitquantity = document.getElementById("unitquantity").value;
+			var unitopenedTrue = document.getElementById('unitopenedTrue').checked;
+			
+			var newunitdefinition = {nodename: nodename, unitname: unitname, unitopenedTrue: unitopenedTrue, unitquantity: unitquantity};
+			
+			var unitposition = UD_unitposition[MoBlo_ClickedItem];
+			
+			drawUnitDefinition(newunitdefinition, unitposition.x, unitposition.y, unitposition.radius, false, true);
+			
+			MoBlo_UnitMap[unitname]=unitdefinition;
+		}		
 
         function addUnitDefinition() {
             var selectedIndex = document.getElementById("listNodeIssueName").selectedIndex;
             var nodename = document.getElementById("listNodeIssueName").options[selectedIndex].value;
             var unitname = document.getElementById("unitname").value;
             var unitquantity = document.getElementById("unitquantity").value;
-
+			
             if (nodename != null && nodename != "" && unitname != null && unitname != "") {
+				if(MoBlo_UnitMap[unitname]!=null) {
+					document.getElementById("unitname").value = "";
+					alert("Unit already exists !");
+					return;
+				}
+			
                 var unitopenedTrue = document.getElementById('unitopenedTrue').checked;
-                var unitdefinition = [nodename, unitname, unitopenedTrue, unitquantity];
-                MoBlo_UnitDefinitionList.push(unitdefinition);
+                var unitdefinition = {nodename: nodename, unitname: unitname, unitopenedTrue: unitopenedTrue, unitquantity: unitquantity};
+				MoBlo_UnitMap[unitname]=unitdefinition;
+				MoBlo_UnitDefinitionNb = MoBlo_UnitDefinitionNb+1;
 
                 var listAssetName = document.getElementById("listAssetName");
                 var optionAsset = document.createElement("option");
@@ -984,7 +1146,7 @@
                 listAssetName.add(optionAsset);
 
                 //add graphic zone
-                var coord = calculateMoBloCorner(MoBlo_UnitDefinitionList.length);
+                var coord = calculateMoBloCorner(MoBlo_UnitDefinitionNb);
 
                 if (coord[0] == 0 ) {
                     var canvas_UD = document.querySelector('.mobloUnitDefinition');
@@ -996,12 +1158,19 @@
 				var radius = 60;
                 drawMoBloZone(ctx_UD, coord[2], coord[3]);
                 drawUnitDefinition(unitdefinition, coord[2], coord[3], radius, false, false);
-				UD_unitposition.push({limit: { xmin: coord[2] + 75, ymin: coord[3]+50, xmax: coord[2]+75+radius, ymax: coord[3]+50+radius},  x: coord[2], y: coord[3], unitdefinition: unitdefinition, radius: radius});
-				alert(done);
-
+				UD_unitposition.push({limit: { xmin: coord[2] + 75, ymin: coord[3]+50, xmax: coord[2]+75+radius, ymax: coord[3]+50+radius},  x: coord[2], y: coord[3], unitname: unitname, nodeindex: selectedIndex, radius: radius});
             }
+			document.getElementById("unitname").value = "";
+            document.getElementById("unitquantity").value = "";
+			document.getElementById('unitopenedTrue').checked = true;
+			document.getElementById('unitopenedFalse').checked = false;
         }
 		
+		/**************************************************************
+		***************************************************************
+		***************** Stream Definition ***************************
+		***************************************************************
+		**************************************************************/
         function drawStreamDefinition(streamdefinition, x, y, selected, click) {
 			var color = '';
 			if (selected) {
@@ -1013,7 +1182,7 @@
             var radius = 60;
 			
             ctx_SD.fillStyle = 'rgb(255, 255, 255)';
-            ctx_SD.fillRect(x + 5, y + 40, 490, radius + 45);
+            ctx_SD.fillRect(x + 5, y + 5, 490, radius + 45);
 			
 			if (click) {
 				ctx_SD.lineWidth = 10;
@@ -1024,43 +1193,72 @@
             //Node name
             ctx_SD.fillStyle = 'rgb(0, 102, 160)';
             ctx_SD.font = '18px serif';
-            ctx_SD.fillText("owner : " + streamdefinition[0], x + 10, y + 20);
+            ctx_SD.fillText("owner : " + streamdefinition.nodename, x + 10, y + 20);
 
             //Stream
             ctx_SD.lineWidth = 4;
-            if (streamdefinition[2]) {
+            if (streamdefinition.streamopenedTrue) {
                 ctx_SD.setLineDash([10, 10]);
             }
             ctx_SD.strokeStyle = color;
             ctx_SD.strokeRect(x + 45,     y + 50, 2 * radius, radius);
             ctx_SD.setLineDash([1, 0]);
-            if (!streamdefinition[2]) {
+            if (!streamdefinition.streamopenedTrue) {
                 ctx_SD.strokeRect(x + 50,     y + 55, (2 * radius) - 10, radius -10);
             }
 
             //Stream name
             ctx_SD.fillStyle = color;
             ctx_SD.font = '18px serif';
-            ctx_SD.fillText(streamdefinition[1], x + 200, y + 80);
+            ctx_SD.fillText(streamdefinition.streamname, x + 200, y + 80);
         }
 
+		function manageStreamDefinition() {
+			if (MoBlo_ClickedItem >= 0) {
+				modifyStreamDefinition();
+			} else {
+				addStreamDefinition();
+			}
+		}
+				
+        function modifyStreamDefinition() {
+            var selectedIndex = document.getElementById("listNodeStreamName").selectedIndex;
+            var nodename = document.getElementById("listNodeStreamName").options[selectedIndex].value;
+            var streamname = document.getElementById("streamname").value;
+			var streamopenedTrue = document.getElementById('streamopenedTrue').checked;
+			
+			var newstreamdefinition = {nodename:nodename, streamname:streamname, streamopenedTrue:streamopenedTrue};
+			
+			var streamposition = SD_streamposition[MoBlo_ClickedItem];
+			
+			drawStreamDefinition(newstreamdefinition, streamposition.x, streamposition.y, false, true);
+			
+			SD_streamposition[MoBlo_ClickedItem].streamdefinition = newstreamdefinition;
+		}			
+		
         function addStreamDefinition() {
             var selectedIndex = document.getElementById("listNodeStreamName").selectedIndex;
             var nodename = document.getElementById("listNodeStreamName").options[selectedIndex].value;
             var streamname = document.getElementById("streamname").value;
 
             if (nodename != null && nodename != "" && streamname != null && streamname != "") {
+				if(MoBlo_StreamMap[streamname]!=null) {
+					document.getElementById("streamname").value = "";
+					alert("Stream already exists !");
+					return;
+				}
+            	
                 var listStreamName = document.getElementById("listStreamName");
                 var option = document.createElement("option");
                 option.text = streamname;
                 listStreamName.add(option);
 
                 var streamopenedTrue = document.getElementById('streamopenedTrue').checked;
-                var streamdefinition = [nodename, streamname, streamopenedTrue];
-                MoBlo_StreamDefinitionList.push(streamdefinition);
+                var streamdefinition = {nodename:nodename, streamname:streamname, streamopenedTrue:streamopenedTrue};
+                MoBlo_StreamMap[streamname]=streamdefinition;
 
                 //add graphic zone
-                var coord = calculateMoBloCorner(MoBlo_StreamDefinitionList.length);
+                var coord = calculateMoBloCorner(Object.keys(MoBlo_StreamMap).length);
 
                 if (coord[0] == 0 ) {
                     var canvas_SD = document.querySelector('.mobloStreamDefinition');
@@ -1071,58 +1269,64 @@
                 } 
                 drawMoBloZone(ctx_SD, coord[2], coord[3]);
                 drawStreamDefinition(streamdefinition, coord[2], coord[3]);
-				SD_streamposition.push({limit: { xmin: coord[2] + 45, ymin: coord[3] + 40, xmax: coord[2] + 165, ymax:  coord[3] + 120}, x: coord[2], y: coord[3], streamdefinition: streamdefinition});
+				SD_streamposition.push({limit: { xmin: coord[2] + 45, ymin: coord[3] + 40, xmax: coord[2] + 165, ymax:  coord[3] + 120}, x: coord[2], y: coord[3], streamdefinition: streamdefinition, nodeindex: selectedIndex});
             }
+            
+            document.getElementById("streamname").value = "";
+			document.getElementById('streamopenedTrue').checked = true;
+			document.getElementById('streamopenedFalse').checked = false;
+            
         }
 
+		/**************************************************************
+		***************************************************************
+		***************** Stream Publication **************************
+		***************************************************************
+		**************************************************************/
         function loadStreamNodes() {
             var selectedIndex = document.getElementById("listStreamName").selectedIndex;
             var streamname = document.getElementById("listStreamName").options[selectedIndex].value;
 
-            if (MoBlo_StreamDefinitionList != null) {
-                for (var i = 0; i < MoBlo_StreamDefinitionList.length; i++) {
-                    if (streamname == MoBlo_StreamDefinitionList[i][1]) {
-
-                        if (MoBlo_StreamDefinitionList[i][2]) {
-
-                            //opened stream, everybody can publish
-                            var listNodeStreamPublicationName = document.getElementById("listNodeStreamPublicationName");
-                            listNodeStreamPublicationName.options.length = 0;
-
-                            var optionall = document.createElement("option");
-                            optionall.text = '*';
-                            listNodeStreamPublicationName.add(optionall);
-
-                            for (var j = 0; j < MoBlo_Nodelist.length ; j ++) {
-                                var r_rights = MoBlo_AddressMap[MoBlo_Nodelist[j]];
-                                if (r_rights != null) {
-                                    var alreadyadded = false;
-                                    for (var k = 0; k < r_rights.length; k++) {
-                                        var rights = r_rights[k];
-                                        if (rights.name == 'user' && rights.send && !alreadyadded) {
-                                            var option = document.createElement("option");
-                                            option.text = MoBlo_Nodelist[j];
-                                            listNodeStreamPublicationName.add(option);
-                                            var alreadyadded = true;
-                                        }
-                                    }
-                                }
-
-                            }
-
-                        } else {
-
-                            //closed stream only owner can publish
-                            var listNodeStreamPublicationName = document.getElementById("listNodeStreamPublicationName");
-                            listNodeStreamPublicationName.options.length = 0;
-                            var option = document.createElement("option");
-                            option.text = MoBlo_StreamDefinitionList[i][0];
-                            listNodeStreamPublicationName.add(option);
-
-                        }
-
-                    }
-                }
+            if (MoBlo_StreamMap != null) {
+            	
+            	var streamdefinition=MoBlo_StreamMap[streamname];
+            	
+            	if (streamdefinition.streamopenedTrue) {
+	                //opened stream, everybody can publish
+	                var listNodeStreamPublicationName = document.getElementById("listNodeStreamPublicationName");
+	                listNodeStreamPublicationName.options.length = 0;
+	
+	                var optionall = document.createElement("option");
+	                optionall.text = '*';
+	                listNodeStreamPublicationName.add(optionall);
+	
+	                for (var j = 0; j < MoBlo_Nodelist.length ; j ++) {
+	                    var r_rights = MoBlo_AddressMap[MoBlo_Nodelist[j]];
+	                    if (r_rights != null) {
+	                        var alreadyadded = false;
+	                        for (var k = 0; k < r_rights.length; k++) {
+	                            var rights = r_rights[k];
+	                            if (rights.name == 'user' && rights.send && !alreadyadded) {
+	                                var option = document.createElement("option");
+	                                option.text = MoBlo_Nodelist[j];
+	                                listNodeStreamPublicationName.add(option);
+	                                var alreadyadded = true;
+	                            }
+	                        }
+	                    }
+	
+	                }
+            		
+            	} else {
+                    //closed stream only owner can publish
+                    var listNodeStreamPublicationName = document.getElementById("listNodeStreamPublicationName");
+                    listNodeStreamPublicationName.options.length = 0;
+                    var option = document.createElement("option");
+                    option.text = streamdefinition.nodename;
+                    listNodeStreamPublicationName.add(option);
+            	}
+            	
+            	
             }
         }
 
@@ -1160,13 +1364,13 @@
             //Publication name
             ctx_SP.fillStyle = 'rgb(0, 102, 160)';
             ctx_SP.font = '18px serif';
-            ctx_SP.fillText("publication : " + publicationdefinition[2], x + 10, y + 20);
+            ctx_SP.fillText("publication : " + publicationdefinition.publicationname, x + 10, y + 20);
 
             //Node name
             ctx_SP.fillStyle = color;
             ctx_SP.font = '18px serif';
             ctx_SP.textAlign = "right";
-            ctx_SP.fillText(publicationdefinition[1], x + 105, y + 85);
+            ctx_SP.fillText(publicationdefinition.nodename, x + 105, y + 85);
             ctx_SP.textAlign = "left";
 
             //Arrow
@@ -1186,23 +1390,60 @@
             ctx_SP.font = '18px serif';
             ctx_SP.textAlign = "center";
             var center = Math.trunc((x + 10 + 100 + 5)+(920 - (x + 10 + 100 + 5))/2); 
-            ctx_SP.fillText('[ ' + publicationdefinition[3] + ' / ' + publicationdefinition[4] + ' ]', center, y + 65);
+            ctx_SP.fillText('[ ' + publicationdefinition.publicationkey + ' / ' + publicationdefinition.publicationvalue + ' ]', center, y + 65);
             ctx_SP.textAlign = "left";
 
             //Stream
             ctx_SP.lineWidth = 4;
-            if (publicationdefinition[5]) {
+            if (publicationdefinition.streamdefinition.streamopenedTrue) {
                 ctx_SP.setLineDash([10, 10]);
             }
             ctx_SP.strokeStyle = color;
             ctx_SP.strokeRect(1000 - 2 * radiusStream,     y + 50, 2 * radiusStream, radiusStream);
             ctx_SP.setLineDash([1, 0]);
-            if (!publicationdefinition[5]) {
+            if (!publicationdefinition.streamdefinition.streamopenedTrue) {
                 ctx_SP.strokeRect(1000 - 2 * radiusStream +5, y + 55, (2 * radiusStream) - 10, radiusStream -10);
             }
-
+            
+            //Stream Name
+            ctx_SP.fillStyle = color;
+            ctx_SP.font = '18px serif';
+            ctx_SP.textAlign = "center";
+            ctx_SP.fillText(publicationdefinition.streamname, 1000 - radiusStream, y + 40);
+            ctx_SP.textAlign = "left";
         }
 
+		function manageStreamPublication() {
+			if (MoBlo_ClickedItem >= 0) {
+				modifyStreamPublication();
+			} else {
+				addStreamPublication();
+			}
+		}
+				
+        function modifyStreamPublication() {
+            var selectedIndexStream = document.getElementById("listStreamName").selectedIndex;
+            var streamname = document.getElementById("listStreamName").options[selectedIndexStream].value;
+
+            var selectedIndexNode = document.getElementById("listNodeStreamPublicationName").selectedIndex;
+            var nodename = document.getElementById("listNodeStreamPublicationName").options[selectedIndexNode].value;
+
+            var publicationname = document.getElementById("streampulicationname").value;
+            var publicationkey = document.getElementById("streamkey").value;
+            var publicationvalue = document.getElementById("streamvalue").value;
+            
+            var newpublicationdefinition = {streamname:streamname, nodename:nodename, publicationname:publicationname, publicationkey:publicationkey, publicationvalue:publicationvalue, streamdefinition:MoBlo_StreamMap[streamname]};
+            
+        	var publicationposition = SP_publiposition[MoBlo_ClickedItem];
+        	
+        	MoBlo_PublicationMap[publicationposition.id]=newpublicationdefinition;
+        	SP_publiposition[MoBlo_ClickedItem].selectedIndexStream = selectedIndexStream;
+        	SP_publiposition[MoBlo_ClickedItem].selectedIndexNode = selectedIndexNode;
+        	
+			drawStreamPublication(newpublicationdefinition, publicationposition.x, publicationposition.y, false, true);
+			
+		}			
+		
         function addStreamPublication() {
             var selectedIndexStream = document.getElementById("listStreamName").selectedIndex;
             var streamname = document.getElementById("listStreamName").options[selectedIndexStream].value;
@@ -1217,15 +1458,11 @@
             if (streamname != null && streamname != "" && nodename != null && nodename != ""
                     && publicationkey != null && publicationkey != "" && publicationvalue != null && publicationvalue != "") {
 
-                var publicationdefinition = [streamname, nodename, publicationname, publicationkey, publicationvalue];
+                var publicationdefinition = {streamname:streamname, nodename:nodename, publicationname:publicationname, publicationkey:publicationkey, publicationvalue:publicationvalue, streamdefinition:MoBlo_StreamMap[streamname]};
 
-                for (var i = 0; i < MoBlo_StreamDefinitionList.length; i ++) {
-                    if( MoBlo_StreamDefinitionList[i][1] == streamname ) {
-                        publicationdefinition.push(MoBlo_StreamDefinitionList[i][2]);
-                    }
-                }
-
-                MoBlo_PublicationDefinitionList.push(publicationdefinition);
+                var id = new Date();
+                MoBlo_PublicationMap[id]=publicationdefinition;
+                
 
                 //add graphic zone
                 var canvas_SP = document.querySelector('.mobloStreamPublication');
@@ -1234,13 +1471,21 @@
                 canvas_SP.height = height + 160;
                 ctx_SP.putImageData(imgData,0,0);
 
-                var line = MoBlo_PublicationDefinitionList.length;
+                var line = Object.keys(MoBlo_PublicationMap).length;
                 drawMoBloDoubleZone(ctx_SP, 5 + line * 160);
                 drawStreamPublication(publicationdefinition, 5, 5 + line * 160, false, false);
-				SP_publiposition.push({limit: { xmin: 10, ymin: 10 + line * 160, xmax: 1010, ymax: 10 + line * 160 + 140}, x: 5, y: 5 + line * 160, publicationdefinition: publicationdefinition});
+				SP_publiposition.push({limit: { xmin: 10, ymin: 10 + line * 160, xmax: 1010, ymax: 10 + line * 160 + 140}, x: 5, y: 5 + line * 160, selectedIndexStream:selectedIndexStream, selectedIndexNode:selectedIndexNode, id:id});
             }
+            document.getElementById("streampulicationname").value = "";
+            document.getElementById("streamkey").value = "";
+            document.getElementById("streamvalue").value = "";
         }
 
+		/**************************************************************
+		***************************************************************
+		**************** Business Transaction *************************
+		***************************************************************
+		**************************************************************/
         function BusinessTransaction(transactiondefinition, x, y, selected, click) {
 			var color = '';
 			if (selected) {
@@ -1274,17 +1519,20 @@
             ctx_BT.fillStyle = color;
             ctx_BT.font = '18px serif';
             ctx_BT.textAlign = "right";
-            ctx_BT.fillText(transactiondefinition[0], x + 105, y + 45);
+            ctx_BT.fillText(transactiondefinition.originname, x + 105, y + 45);
             ctx_BT.textAlign = "left";
 
             //Destination name
             ctx_BT.fillStyle = color;
             ctx_BT.font = '18px serif';
-            ctx_BT.fillText(transactiondefinition[1], 1020 - 5 - 105, y + 45);
+            ctx_BT.fillText(transactiondefinition.destinationname, 1020 - 5 - 105, y + 45);
 
             //Arrow
             ctx_BT.beginPath();
             ctx_BT.lineWidth = 4;
+            if (!transactiondefinition.BCTransactionTrue) {
+                ctx_BT.setLineDash([10, 10]);
+            }
             ctx_BT.strokeStyle = color;
             ctx_BT.moveTo(x + 10 + 100 + 5,     y + 40);
             ctx_BT.lineTo(1020 - 5 - 105 - 10, y + 40);
@@ -1293,19 +1541,65 @@
             ctx_BT.moveTo(1020 - 5 - 105 - 10 - 1.33 * radiusArrow,     y + 40 + 0.66 * radiusArrow);
             ctx_BT.lineTo(1020 - 5 - 105 - 10, y + 40);
             ctx_BT.stroke();
+            ctx_BT.setLineDash([1, 0]);
 
             //Publication values
             ctx_BT.fillStyle = color;
             ctx_BT.font = '18px serif';
             ctx_BT.textAlign = "center";
             var center = Math.trunc((x + 10 + 100 + 5)+(1020 - 5 - 105 - 10 - (x + 10 + 100 + 5))/2);
-            var trans_text = '#t { ' + transactiondefinition[3] + ' ' + transactiondefinition[2];
-            if (transactiondefinition[4] != null && transactiondefinition[4] != "") {
-                trans_text = trans_text + ' [ ' + transactiondefinition[4] + ' ]'
+            var trans_text = '#t { ' + transactiondefinition.assetvalue + ' ' + transactiondefinition.assetname;
+            if (transactiondefinition.transactiondata != null && transactiondefinition.transactiondata != "") {
+                trans_text = trans_text + ' [ ' + transactiondefinition.transactiondata + ' ]'
             }
             ctx_BT.fillText( trans_text + ' }', center, y + 25);
             ctx_BT.textAlign = "left";
         }
+
+
+		function manageBusinessTransaction() {
+			if (MoBlo_ClickedItem >= 0) {
+				modifyBusinessTransaction();
+			} else {
+				addBusinessTransaction();
+			}
+		}
+		
+        function modifyBusinessTransaction() {
+            var selectedIndexOrigin = document.getElementById("listOriginNodeName").selectedIndex;
+            var originname = document.getElementById("listOriginNodeName").options[selectedIndexOrigin].value;
+
+            var selectedIndexDestination = document.getElementById("listDestinationNodeName").selectedIndex;
+            var destinationname = document.getElementById("listDestinationNodeName").options[selectedIndexDestination].value;
+
+            var selectedIndexAssetName = document.getElementById("listAssetName").selectedIndex;
+            var assetname = "";
+            if (selectedIndexAssetName >= 0) {
+                assetname = document.getElementById("listAssetName").options[selectedIndexAssetName].value;
+            }
+
+            var actionname = document.getElementById("actionname").value;
+            var assetvalue = document.getElementById("assetvalue").value;
+            var transactiondata = document.getElementById("transactiondata").value;
+            
+			if (selectedIndexAssetName == 0) {
+				assetvalue = "";
+			}
+			
+            var BCTransactionTrue = document.getElementById('BCTransactionTrue').checked;
+			
+			var newtransactiondefinition = {originname:originname, destinationname:destinationname, assetname:assetname, assetvalue:assetvalue, transactiondata:transactiondata, actionname:actionname, BCTransactionTrue:BCTransactionTrue};
+			
+			var transactionposition = BT_transacposition[MoBlo_ClickedItem];
+			
+        	MoBlo_TransactionDefinitionMap[transactionposition.id]=newtransactiondefinition;
+        	BT_transacposition[MoBlo_ClickedItem].selectedIndexOrigin = selectedIndexOrigin;
+        	BT_transacposition[MoBlo_ClickedItem].selectedIndexDestination = selectedIndexDestination;
+        	BT_transacposition[MoBlo_ClickedItem].selectedIndexAssetName = selectedIndexAssetName;
+
+			BusinessTransaction(newtransactiondefinition, transactionposition.x, transactionposition.y, false, true);
+		}		
+
 
         function addBusinessTransaction() {
             var selectedIndexOrigin = document.getElementById("listOriginNodeName").selectedIndex;
@@ -1326,9 +1620,15 @@
 
             if (originname != null && originname != "" && destinationname != null && destinationname != "") {
 
-                var transactiondefinition = [originname, destinationname, assetname, assetvalue, transactiondata, actionname];
+				if (selectedIndexAssetName == 0) {
+					assetvalue = "";
+				}
 
-                MoBlo_TransactionDefinitionList.push(transactiondefinition);
+                var BCTransactionTrue = document.getElementById('BCTransactionTrue').checked;
+                var transactiondefinition = {originname:originname, destinationname:destinationname, assetname:assetname, assetvalue:assetvalue, transactiondata:transactiondata, actionname:actionname, BCTransactionTrue:BCTransactionTrue};
+
+                var id = new Date();
+                MoBlo_TransactionDefinitionMap[id]=transactiondefinition;
 
                 var actionindex = -1;
                 if (actionname != null && actionname != "") {
@@ -1339,7 +1639,7 @@
                     MoBlo_ActionNameList.push(actionname);
                 }
 
-                var nbtransac = MoBlo_TransactionDefinitionList.length - 1;
+                var nbtransac = Object.keys(MoBlo_TransactionDefinitionMap).length; - 1;
 
                 var yZone = 150 + nbactions * 50 + nbtransac * 60;
                 //add graphic zone
@@ -1360,7 +1660,7 @@
                         drawMoBloDoubleOpenedZone(ctx_BT, yZone + 2, MoBlo_ActionNameList.length);
                     }
 
-                    //Publication name
+                    //Action name
                     ctx_BT.fillStyle = 'rgb(0, 102, 160)';
                     ctx_BT.font = '18px serif';
                     ctx_BT.fillText("Action : " + actionname, 15, yZone + 40);
@@ -1369,9 +1669,21 @@
                 }
 				
                 BusinessTransaction(transactiondefinition, 5, yZone, false, false);
-				BT_transacposition.push({limit: { xmin: 10, ymin: yZone+5, xmax: 1010, ymax: yZone+50}, x: 5, y: yZone, transactiondefinition: transactiondefinition});
+				BT_transacposition.push({limit: { xmin: 10, ymin: yZone+5, xmax: 1010, ymax: yZone+50}, x: 5, y: yZone, id: id, selectedIndexOrigin:selectedIndexOrigin, selectedIndexDestination:selectedIndexDestination, selectedIndexAssetName:selectedIndexAssetName});
             }
+            
+            document.getElementById("assetvalue").value = "";
+            document.getElementById("transactiondata").value = "";
+			document.getElementById('BCTransactionTrue').checked = true;
+			document.getElementById('BCTransactionFalse').checked = false;
+            
         }
+
+		/**************************************************************
+		***************************************************************
+		******************** Interactions *****************************
+		***************************************************************
+		**************************************************************/
 
 		function getMousePos(canvas, evt) {
 			var rect = canvas.getBoundingClientRect();
@@ -1413,24 +1725,30 @@
 						if (MoBlo_SelectedItem == MoBlo_ClickedItem) {
 							clicked = true;
 						}
-						if (positionlist[MoBlo_SelectedItem].rights.name == 'user') {
-							drawBizNode(positionlist[MoBlo_SelectedItem].rights, positionlist[MoBlo_SelectedItem].x, positionlist[MoBlo_SelectedItem].y, positionlist[MoBlo_SelectedItem].radius, false, clicked);
-						} else if (positionlist[MoBlo_SelectedItem].rights.name == 'control') {
+
+						var rights = getPMNoderights(positionlist[MoBlo_SelectedItem].nodename, positionlist[MoBlo_SelectedItem].rightsindex, positionlist[MoBlo_SelectedItem].rightsname);
+						
+						if (rights.name == 'user') {
+							drawBizNode(rights, positionlist[MoBlo_SelectedItem].x, positionlist[MoBlo_SelectedItem].y, positionlist[MoBlo_SelectedItem].radius, false, clicked);
+						} else if (rights.name == 'control') {
 							drawConnectNode(positionlist[MoBlo_SelectedItem].x, positionlist[MoBlo_SelectedItem].y, positionlist[MoBlo_SelectedItem].radius, false, clicked);
-						} else if (positionlist[MoBlo_SelectedItem].rights.name == 'admin') {
-							drawAdminNode(positionlist[MoBlo_SelectedItem].rights, positionlist[MoBlo_SelectedItem].x, positionlist[MoBlo_SelectedItem].y, positionlist[MoBlo_SelectedItem].radius, false, clicked);
+						} else if (rights.name == 'admin') {
+							drawAdminNode(rights, positionlist[MoBlo_SelectedItem].x, positionlist[MoBlo_SelectedItem].y, positionlist[MoBlo_SelectedItem].radius, false, clicked);
 						}
 					}
 					if (selectedzone >= 0) {
 						if (selectedzone == MoBlo_ClickedItem) {
 							clicked = true;
 						}
-						if (positionlist[selectedzone].rights.name == 'user') {
-							drawBizNode(positionlist[selectedzone].rights, positionlist[selectedzone].x, positionlist[selectedzone].y, positionlist[selectedzone].radius, true, clicked);
-						} else if (positionlist[selectedzone].rights.name == 'control') {
+						
+						var rights = getPMNoderights(positionlist[selectedzone].nodename, positionlist[selectedzone].rightsindex, positionlist[selectedzone].rightsname);
+						
+						if (rights.name == 'user') {
+							drawBizNode(rights, positionlist[selectedzone].x, positionlist[selectedzone].y, positionlist[selectedzone].radius, true, clicked);
+						} else if (rights.name == 'control') {
 							drawConnectNode(positionlist[selectedzone].x, positionlist[selectedzone].y, positionlist[selectedzone].radius, true, clicked);
-						} else if (positionlist[selectedzone].rights.name == 'admin') {
-							drawAdminNode(positionlist[selectedzone].rights, positionlist[selectedzone].x, positionlist[selectedzone].y, positionlist[selectedzone].radius, true, clicked);
+						} else if (rights.name == 'admin') {
+							drawAdminNode(rights, positionlist[selectedzone].x, positionlist[selectedzone].y, positionlist[selectedzone].radius, true, clicked);
 						}
 					}
 				} else if (MoBlo_ActiveDiagramme == 'UD' ) {
@@ -1440,13 +1758,17 @@
 						if (MoBlo_SelectedItem == MoBlo_ClickedItem) {
 							clicked = true;
 						}
-						drawUnitDefinition(positionlist[MoBlo_SelectedItem].unitdefinition, positionlist[MoBlo_SelectedItem].x, positionlist[MoBlo_SelectedItem].y, positionlist[MoBlo_SelectedItem].radius, false, clicked);
+						var unitdefinition = MoBlo_UnitMap[positionlist[MoBlo_SelectedItem].unitname];
+						
+						drawUnitDefinition(unitdefinition, positionlist[MoBlo_SelectedItem].x, positionlist[MoBlo_SelectedItem].y, positionlist[MoBlo_SelectedItem].radius, false, clicked);
 					}
 					if (selectedzone >= 0) {
 						if (selectedzone == MoBlo_ClickedItem) {
 							clicked = true;
 						}
-						drawUnitDefinition(positionlist[selectedzone].unitdefinition, positionlist[selectedzone].x, positionlist[selectedzone].y, positionlist[selectedzone].radius, true, clicked);
+						var unitdefinition = MoBlo_UnitMap[positionlist[selectedzone].unitname];
+						
+						drawUnitDefinition(unitdefinition, positionlist[selectedzone].x, positionlist[selectedzone].y, positionlist[selectedzone].radius, true, clicked);
 					} 
 				} else if (MoBlo_ActiveDiagramme == 'BT' ) {
 					var clicked = false;
@@ -1455,13 +1777,15 @@
 						if (MoBlo_SelectedItem == MoBlo_ClickedItem) {
 							clicked = true;
 						}
-						BusinessTransaction(positionlist[MoBlo_SelectedItem].transactiondefinition, positionlist[MoBlo_SelectedItem].x, positionlist[MoBlo_SelectedItem].y, false, clicked);
+						var transactiondefinition = MoBlo_TransactionDefinitionMap[positionlist[MoBlo_SelectedItem].id];
+						BusinessTransaction(transactiondefinition, positionlist[MoBlo_SelectedItem].x, positionlist[MoBlo_SelectedItem].y, false, clicked);
 					}
 					if (selectedzone >= 0) {
 						if (selectedzone == MoBlo_ClickedItem) {
 							clicked = true;
 						}
-						BusinessTransaction(positionlist[selectedzone].transactiondefinition, positionlist[selectedzone].x, positionlist[selectedzone].y, true, clicked);
+						var transactiondefinition = MoBlo_TransactionDefinitionMap[positionlist[selectedzone].id];
+						BusinessTransaction(transactiondefinition, positionlist[selectedzone].x, positionlist[selectedzone].y, true, clicked);
 						
 					}
 				} else if (MoBlo_ActiveDiagramme == 'SD' ) {
@@ -1487,13 +1811,16 @@
 						if (MoBlo_SelectedItem == MoBlo_ClickedItem) {
 							clicked = true;
 						}
-						drawStreamPublication(positionlist[MoBlo_SelectedItem].publicationdefinition, positionlist[MoBlo_SelectedItem].x, positionlist[MoBlo_SelectedItem].y, false, clicked);
+						var publicationdefinition = MoBlo_PublicationMap[positionlist[MoBlo_SelectedItem].id];
+						drawStreamPublication(publicationdefinition, positionlist[MoBlo_SelectedItem].x, positionlist[MoBlo_SelectedItem].y, false, clicked);
 					}
 					if (selectedzone >= 0) {
 						if (selectedzone == MoBlo_ClickedItem) {
 							clicked = true;
 						}
-						drawStreamPublication(positionlist[selectedzone].publicationdefinition, positionlist[selectedzone].x, positionlist[selectedzone].y, true, clicked);
+						var publicationdefinition = MoBlo_PublicationMap[positionlist[selectedzone].id];
+						
+						drawStreamPublication(publicationdefinition, positionlist[selectedzone].x, positionlist[selectedzone].y, true, clicked);
 					}
 				}
 
@@ -1516,58 +1843,186 @@
 			
 			var positionlist = [];
 			if (MoBlo_ActiveDiagramme == 'PM' ) {
+				document.getElementById("PMAddAddress").innerHTML  = 'Add Address';
 				positionlist = PM_nodeposition;
+				
 				if (previousclick >= 0) {
-					if (positionlist[previousclick].rights.name == 'user') {
-						drawBizNode(positionlist[previousclick].rights, positionlist[previousclick].x, positionlist[previousclick].y, positionlist[previousclick].radius, selected, false);
-					} else if (positionlist[previousclick].rights.name == 'control') {
-						drawConnectNode(positionlist[previousclick].x, positionlist[previousclick].y, positionlist[previousclick].radius, selected, false);
-					} else if (positionlist[previousclick].rights.name == 'admin') {
-						drawAdminNode(positionlist[previousclick].rights, positionlist[previousclick].x, positionlist[previousclick].y, positionlist[previousclick].radius, selected, false);
-					}
+					var rights = getPMNoderights(positionlist[previousclick].nodename, positionlist[previousclick].rightsindex, positionlist[previousclick].rightsname);
 					
+					if (rights.name == 'user') {
+						drawBizNode(rights, positionlist[previousclick].x, positionlist[previousclick].y, positionlist[previousclick].radius, selected, false);
+					} else if (rights.name == 'control') {
+						drawConnectNode(positionlist[previousclick].x, positionlist[previousclick].y, positionlist[previousclick].radius, selected, false);
+					} else if (rights.name == 'admin') {
+						drawAdminNode(rights, positionlist[previousclick].x, positionlist[previousclick].y, positionlist[previousclick].radius, selected, false);
+					}
 				}
+				
+				document.getElementById("listNodeName").disabled = false;
+				document.getElementById('processRight').checked = false;
+				document.getElementById('activateRight').checked = false;
+				document.getElementById('adminRight').checked = false;
+				document.getElementById('originRight').checked = false;
+				document.getElementById('sendRight').checked = false;
+				document.getElementById('receiveRight').checked = false;
+				document.getElementById('issueRight').checked = false;
+				document.getElementById('createRight').checked = false;
+				document.getElementById('connectRight').checked = false;
+				
 				if (MoBlo_ClickedItem >= 0) {
-					if (positionlist[MoBlo_ClickedItem].rights.name == 'user') {
-						drawBizNode(positionlist[MoBlo_ClickedItem].rights, positionlist[MoBlo_ClickedItem].x, positionlist[MoBlo_ClickedItem].y, positionlist[MoBlo_ClickedItem].radius, true, true);
-					} else if (positionlist[MoBlo_ClickedItem].rights.name == 'control') {
+					document.getElementById("PMAddAddress").innerHTML  = 'Modify Address';
+					
+					var rights = getPMNoderights(positionlist[MoBlo_ClickedItem].nodename, positionlist[MoBlo_ClickedItem].rightsindex, positionlist[MoBlo_ClickedItem].rightsname);
+					
+					document.getElementById("listNodeName").selectedIndex = positionlist[MoBlo_ClickedItem].selectedIndex;
+					document.getElementById("listNodeName").disabled = true;
+					
+					if (rights.name == 'user') {
+						drawBizNode(rights, positionlist[MoBlo_ClickedItem].x, positionlist[MoBlo_ClickedItem].y, positionlist[MoBlo_ClickedItem].radius, true, true);
+						if (rights.send) {
+							document.getElementById('sendRight').checked = true;
+						}
+						if (rights.receive) {
+							document.getElementById('receiveRight').checked = true;
+						}
+						if (rights.issue) {
+							document.getElementById('issueRight').checked = true;
+						}
+						if (rights.create) {
+							document.getElementById('createRight').checked = true;
+						}
+						
+					} else if (rights.name == 'control') {
 						drawConnectNode(positionlist[MoBlo_ClickedItem].x, positionlist[MoBlo_ClickedItem].y, positionlist[MoBlo_ClickedItem].radius, true, true);
-					} else if (positionlist[MoBlo_ClickedItem].rights.name == 'admin') {
-						drawAdminNode(positionlist[MoBlo_ClickedItem].rights, positionlist[MoBlo_ClickedItem].x, positionlist[MoBlo_ClickedItem].y, positionlist[MoBlo_ClickedItem].radius, true, true);
+						if (rights.connect) {
+							document.getElementById('connectRight').checked = true;
+						}
+					} else if (rights.name == 'admin') {
+						drawAdminNode(rights, positionlist[MoBlo_ClickedItem].x, positionlist[MoBlo_ClickedItem].y, positionlist[MoBlo_ClickedItem].radius, true, true);
+						if (rights.origin) {
+							document.getElementById('originRight').checked = true;
+						}
+						if (rights.admin) {
+							document.getElementById('adminRight').checked = true;
+						}
+						if (rights.activate) {
+							document.getElementById('activateRight').checked = true;
+						}
+						if (rights.process) {
+							document.getElementById('processRight').checked = true;
+						}
 					}
 				}
 			} else if (MoBlo_ActiveDiagramme == 'UD' ) {
+				document.getElementById("UDAddUnit").innerHTML  = 'Add Unit';
 				positionlist = UD_unitposition;
+				
 				if (previousclick >= 0) {
-					drawUnitDefinition(positionlist[previousclick].unitdefinition, positionlist[previousclick].x, positionlist[previousclick].y, positionlist[previousclick].radius, selected, false);
+					var unitdefinition = MoBlo_UnitMap[positionlist[previousclick].unitname];
+					drawUnitDefinition(unitdefinition, positionlist[previousclick].x, positionlist[previousclick].y, positionlist[previousclick].radius, selected, false);
 				}
+				
+				document.getElementById("listNodeIssueName").selectedIndex = 0;
+				document.getElementById("unitname").value = "";
+				document.getElementById("unitname").disabled = false;
+				document.getElementById("unitquantity").value = "";
+				document.getElementById('unitopenedTrue').checked = true;
+				document.getElementById('unitopenedFalse').checked = false;
+				
 				if (MoBlo_ClickedItem >= 0) {
-					drawUnitDefinition(positionlist[MoBlo_ClickedItem].unitdefinition, positionlist[MoBlo_ClickedItem].x, positionlist[MoBlo_ClickedItem].y, positionlist[MoBlo_ClickedItem].radius, true, true);
+					document.getElementById("UDAddUnit").innerHTML  = 'Modify Unit';
+					
+					var unitdefinition = MoBlo_UnitMap[positionlist[MoBlo_ClickedItem].unitname];
+				
+					drawUnitDefinition(unitdefinition, positionlist[MoBlo_ClickedItem].x, positionlist[MoBlo_ClickedItem].y, positionlist[MoBlo_ClickedItem].radius, true, true);
+					document.getElementById("listNodeIssueName").selectedIndex = positionlist[MoBlo_ClickedItem].nodeindex;
+					document.getElementById("unitname").value = unitdefinition.unitname;
+					document.getElementById("unitname").disabled = true;
+					document.getElementById("unitquantity").value = unitdefinition.unitquantity;
+					document.getElementById('unitopenedTrue').checked = unitdefinition.unitopenedTrue;
+					document.getElementById('unitopenedFalse').checked = !unitdefinition.unitopenedTrue;
 				}
 			} else if (MoBlo_ActiveDiagramme == 'BT' ) {
+				document.getElementById("BTAddTransaction").innerHTML  = 'Add Transaction';
+				
 				positionlist = BT_transacposition;
 				if (previousclick >= 0) {
-					BusinessTransaction(positionlist[previousclick].transactiondefinition, positionlist[previousclick].x, positionlist[previousclick].y, selected, false);
+					var transactiondefinition = MoBlo_TransactionDefinitionMap[positionlist[previousclick].id];
+					BusinessTransaction(transactiondefinition, positionlist[previousclick].x, positionlist[previousclick].y, selected, false);
 				}
+				
+	            document.getElementById("assetvalue").value = "";
+	            document.getElementById("transactiondata").value = "";
+				document.getElementById("actionname").disabled = false;
+				document.getElementById('BCTransactionTrue').checked = true;
+				document.getElementById('BCTransactionFalse').checked = false;
+	            
+				
 				if (MoBlo_ClickedItem >= 0) {
-					BusinessTransaction(positionlist[MoBlo_ClickedItem].transactiondefinition, positionlist[MoBlo_ClickedItem].x, positionlist[MoBlo_ClickedItem].y, true, true);
+					document.getElementById("BTAddTransaction").innerHTML  = 'Modify Transaction';
+					
+					var transactiondefinition = MoBlo_TransactionDefinitionMap[positionlist[MoBlo_ClickedItem].id];
+					 
+					BusinessTransaction(transactiondefinition, positionlist[MoBlo_ClickedItem].x, positionlist[MoBlo_ClickedItem].y, true, true);
+					
+		            document.getElementById("listOriginNodeName").selectedIndex = positionlist[MoBlo_ClickedItem].selectedIndexOrigin;
+		            document.getElementById("listDestinationNodeName").selectedIndex = positionlist[MoBlo_ClickedItem].selectedIndexDestination;
+		            document.getElementById("listAssetName").selectedIndex = positionlist[MoBlo_ClickedItem].selectedIndexAssetName;
+		            document.getElementById("actionname").value = transactiondefinition.actionname;
+					document.getElementById("actionname").disabled = true;
+		            document.getElementById("assetvalue").value = transactiondefinition.assetvalue;
+		            document.getElementById("transactiondata").value = transactiondefinition.transactiondata;
+					document.getElementById('BCTransactionTrue').checked = transactiondefinition.BCTransactionTrue;
+					document.getElementById('BCTransactionFalse').checked = !transactiondefinition.BCTransactionTrue;
 				}
 			} else if (MoBlo_ActiveDiagramme == 'SD' ) {
+				document.getElementById("SDAddStream").innerHTML  = 'Add Stream';
 				positionlist = SD_streamposition;
+				
 				if (previousclick >= 0) {
 					drawStreamDefinition(positionlist[previousclick].streamdefinition, positionlist[previousclick].x, positionlist[previousclick].y, selected, false);
 				}
+				
+	            document.getElementById("streamname").value = "";
+				document.getElementById('streamopenedTrue').checked = true;
+				document.getElementById('streamopenedFalse').checked = false;
+				
 				if (MoBlo_ClickedItem >= 0) {
-					drawStreamDefinition(positionlist[MoBlo_ClickedItem].streamdefinition, positionlist[MoBlo_ClickedItem].x, positionlist[MoBlo_ClickedItem].y, true, true);
+					document.getElementById("SDAddStream").innerHTML  = 'Modify Stream';
+
+					var streamdefinition = positionlist[MoBlo_ClickedItem].streamdefinition;
+					
+					drawStreamDefinition(streamdefinition, positionlist[MoBlo_ClickedItem].x, positionlist[MoBlo_ClickedItem].y, true, true);
+					
+		            document.getElementById("listNodeStreamName").selectedIndex = positionlist[MoBlo_ClickedItem].nodeindex;
+		            document.getElementById("streamname").value = streamdefinition.streamname;
+					document.getElementById('streamopenedTrue').checked = streamdefinition.streamopenedTrue;
+					document.getElementById('streamopenedFalse').checked = !streamdefinition.streamopenedTrue;
 				}
 			} else if (MoBlo_ActiveDiagramme == 'SP' ) {
+				document.getElementById("SPPublishStream").innerHTML  = 'Publish in Stream';
 				positionlist = SP_publiposition;
 				if (previousclick >= 0) {
-					drawStreamPublication(positionlist[previousclick].publicationdefinition, positionlist[previousclick].x, positionlist[previousclick].y, selected, false);
-					
+					var publicationdefinition = MoBlo_PublicationMap[positionlist[previousclick].id];
+					drawStreamPublication(publicationdefinition, positionlist[previousclick].x, positionlist[previousclick].y, selected, false);
 				}
+				
+	            document.getElementById("streampulicationname").value = "";
+	            document.getElementById("streamkey").value = "";
+	            document.getElementById("streamvalue").value = "";
+				
 				if (MoBlo_ClickedItem >= 0) {
-					drawStreamPublication(positionlist[MoBlo_ClickedItem].publicationdefinition, positionlist[MoBlo_ClickedItem].x, positionlist[MoBlo_ClickedItem].y, true, true);
+					document.getElementById("SPPublishStream").innerHTML  = 'Modify Publication';
+
+					var publicationdefinition = MoBlo_PublicationMap[positionlist[MoBlo_ClickedItem].id];
+					drawStreamPublication(publicationdefinition, positionlist[MoBlo_ClickedItem].x, positionlist[MoBlo_ClickedItem].y, true, true);
+					
+		            document.getElementById("streampulicationname").value = publicationdefinition.publicationname;
+		            document.getElementById("streamkey").value = publicationdefinition.publicationkey;
+		            document.getElementById("streamvalue").value = publicationdefinition.publicationvalue;
+		            document.getElementById("listStreamName").selectedIndex = positionlist[MoBlo_ClickedItem].selectedIndexStream;
+		            document.getElementById("listNodeStreamPublicationName").selectedIndex = positionlist[MoBlo_ClickedItem].selectedIndexNode;
+				
 				}
 			}
 			

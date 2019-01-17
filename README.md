@@ -9,4 +9,4 @@ FireFox, Chrome
 Each version includes bug fixing.
 
  * **1.0.1** : hightlighting selection
- * **1.0.2** : non-structuring modification
+ * **1.0.2** : non-structuring modification + BT transaction evolution (allows non UD transactions and not BC transactions)

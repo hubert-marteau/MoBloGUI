@@ -90,6 +90,8 @@
                         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                     </td>
                     <td valign="top">
+                        <input type="checkbox" id="noneRight"><label for="noneRight">Simple Node</label>
+                        <br />
                         <input type="checkbox" id="connectRight"><label for="connectRight">Connect</label>
                         <br />
                         <input type="checkbox" id="sendRight"><label for="sendRight">Send</label> <input type="checkbox" id="receiveRight"><label for="receiveRight">Receive</label> 
@@ -500,7 +502,7 @@
 
             ctx.fillStyle = 'rgb(125, 125, 125)';
             ctx.font = 'italic 14px serif';
-            ctx.fillText('MoBlo GUI v1.0.2', 900, 25);
+            ctx.fillText('MoBlo GUI v1.0.3', 900, 25);
 
         }
 
@@ -892,6 +894,7 @@
             var nodename = document.getElementById("listNodeName").options[selectedIndex].value;
 
             if (nodename != null && nodename != "") {
+            	var noneRight = document.getElementById('noneRight').checked;
                 var connectRight = document.getElementById('connectRight').checked;
                 var sendRight = document.getElementById('sendRight').checked;
                 var receiveRight = document.getElementById('receiveRight').checked;
@@ -1026,6 +1029,41 @@
                     }
 					
 					document.getElementById('connectRight').checked = false;
+                }
+                
+                
+                if (noneRight) {
+
+                    var rights = {name: 'simple', simple: noneRight};
+                    if (MoBlo_AddressMap[nodename] == null ) {
+                        var r_rights = [rights];
+                        MoBlo_AddressMap[nodename] = r_rights;
+                    } else {
+                        var r_rights = MoBlo_AddressMap[nodename];
+                        r_rights.push(rights);
+                        MoBlo_AddressMap[nodename] = r_rights;
+                    }
+					var rightsindex = MoBlo_AddressMap[nodename].length - 1;
+
+                    if (rightsindex > 5) {
+						alert("MAX 6 addresses per node !");
+						return;
+					}
+                    if (MoBlo_Nodelist != null) {
+                        var nodeindex = MoBlo_Nodelist.indexOf(nodename);
+                        
+                        var coord = calculateMoBloCorner(nodeindex+1);
+                        var radius = 30;
+                        var x = coord[2] + radius + 20;
+                        var y = coord[3] + radius + 50;
+
+                        x = x + ((MoBlo_AddressMap[nodename].length -1) * (2*radius + 10));
+
+                        drawSimpleNode(x, y, radius, false, false);
+						PM_nodeposition.push({limit: { xmin: x-radius, ymin: y-radius, xmax: x+radius, ymax: y+radius}, rightsname: rights.name, rightsindex: rightsindex,  x: x, y: y, radius: radius, nodename: nodename, selectedIndex:selectedIndex});
+                    }
+					
+					document.getElementById('noneRight').checked = false;
                 }
             }
 
